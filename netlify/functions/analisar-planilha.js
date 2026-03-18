@@ -1,8 +1,10 @@
 // netlify/functions/analisar-planilha.js
-// Backend protegido — a chave da API fica aqui, invisível para o cliente
+// Backend protegido — chave da API invisível ao cliente
 
 exports.handler = async (event) => {
-  // Handle CORS preflight
+  console.log('Função iniciada:', event.httpMethod);
+
+  // CORS preflight
   if (event.httpMethod === 'OPTIONS') {
     return {
       statusCode: 200,
@@ -16,11 +18,29 @@ exports.handler = async (event) => {
   }
 
   if (event.httpMethod !== 'POST') {
-    return { statusCode: 405, body: 'Method Not Allowed' };
+    return {
+      statusCode: 405,
+      headers: { 'Access-Control-Allow-Origin': '*' },
+      body: JSON.stringify({ erro: 'Método não permitido' }),
+    };
   }
 
   try {
-    const { dados, nomeArquivo } = JSON.parse(event.body);
+    // Parse body
+    let body;
+    try {
+      body = JSON.parse(event.body);
+    } catch(e) {
+      console.error('Erro ao parsear body:', e.message);
+      return {
+        statusCode: 400,
+        headers: { 'Access-Control-Allow-Origin': '*' },
+        body: JSON.stringify({ erro: 'Corpo da requisição inválido' }),
+      };
+    }
+
+    const { dados, nomeArquivo } = body;
+    console.log('Arquivo recebido:', nomeArquivo, '| Tamanho:', dados?.length || 0, 'chars');
 
     if (!dados || dados.trim().length === 0) {
       return {
@@ -30,8 +50,9 @@ exports.handler = async (event) => {
       };
     }
 
-    // Chave protegida no servidor — nunca exposta ao cliente
+    // Verificar chave
     const ANTHROPIC_KEY = process.env.ANTHROPIC_API_KEY;
+    console.log('Chave configurada:', ANTHROPIC_KEY ? 'SIM' : 'NÃO');
 
     if (!ANTHROPIC_KEY) {
       return {
@@ -41,27 +62,28 @@ exports.handler = async (event) => {
       };
     }
 
-    const prompt = `Você é um especialista em finanças empresariais brasileiras. 
-Recebi os dados de uma planilha financeira de uma empresa chamada "${nomeArquivo}".
+    // Limitar dados para evitar timeout (max 30k chars)
+    const dadosLimitados = dados.slice(0, 30000);
+    console.log('Enviando para Claude:', dadosLimitados.length, 'chars');
 
-DADOS DA PLANILHA:
-${dados}
+    const prompt = `Você é um especialista em finanças empresariais brasileiras.
+Analise os dados desta planilha financeira e retorne um JSON estruturado.
 
-Sua tarefa é analisar esses dados e retornar um JSON estruturado com as movimentações financeiras organizadas por mês.
+NOME DO ARQUIVO: ${nomeArquivo || 'planilha'}
 
-REGRAS IMPORTANTES:
-1. Identifique TODAS as entradas (receitas, vendas, recebimentos) e saídas (despesas, pagamentos, custos)
-2. Categorize cada transação (ex: Aluguel, Salários, Vendas, Serviços, Marketing, Impostos, etc.)
-3. Identifique o mês e ano de cada lançamento
-4. Se uma data não for clara, use o contexto para inferir
-5. Valores negativos ou com sinal "-" são saídas
-6. Valores positivos são entradas
-7. Agrupe por mês no formato YYYY-MM
+DADOS:
+${dadosLimitados}
 
-Retorne APENAS um JSON válido, sem texto adicional, neste formato exato:
+INSTRUÇÕES:
+1. Identifique TODAS as entradas (receitas) e saídas (despesas)
+2. Categorize cada transação (Aluguel, Salários, Vendas, Marketing, etc.)
+3. Identifique o mês/ano de cada lançamento
+4. Agrupe por mês
+
+Retorne APENAS um JSON válido neste formato exato (sem texto adicional, sem markdown):
 {
-  "empresa": "Nome inferido da empresa",
-  "periodo": "período identificado (ex: Jan/2025 a Dez/2025)",
+  "empresa": "nome da empresa identificado",
+  "periodo": "período identificado",
   "meses": [
     {
       "label": "Jan/25",
@@ -70,27 +92,22 @@ Retorne APENAS um JSON válido, sem texto adicional, neste formato exato:
       "s": 9500.00,
       "l": 5500.00,
       "entradas": [
-        {"desc": "Descrição da receita", "val": 5000.00, "date": "05/01/2025", "status": "rcv", "categoria": "Vendas"}
+        {"desc": "descrição", "val": 5000.00, "date": "05/01/2025", "status": "rcv", "categoria": "Vendas"}
       ],
       "saidas": [
-        {"desc": "Descrição da despesa", "val": 2000.00, "date": "10/01/2025", "status": "rcv", "categoria": "Aluguel"}
+        {"desc": "descrição", "val": 2000.00, "date": "10/01/2025", "status": "rcv", "categoria": "Aluguel"}
       ]
     }
   ],
   "resumo": {
     "total_entradas": 0,
     "total_saidas": 0,
-    "lucro_total": 0,
-    "margem_media": 0,
-    "melhor_mes": "Mês com maior lucro",
-    "categorias_saidas": {"Aluguel": 0, "Salários": 0}
+    "lucro_total": 0
   },
-  "insights": [
-    "Insight 1 sobre o negócio",
-    "Insight 2 sobre crescimento ou atenção",
-    "Insight 3 sobre oportunidade"
-  ]
+  "insights": ["insight 1", "insight 2", "insight 3"]
 }`;
+
+    console.log('Chamando API Claude...');
 
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
@@ -106,23 +123,38 @@ Retorne APENAS um JSON válido, sem texto adicional, neste formato exato:
       }),
     });
 
+    console.log('Status da API:', response.status);
+
     if (!response.ok) {
       const errText = await response.text();
-      throw new Error(`API Claude retornou erro ${response.status}: ${errText}`);
+      console.error('Erro da API:', errText);
+      throw new Error(`Erro na API Claude (${response.status}): ${errText.slice(0,200)}`);
     }
 
     const data = await response.json();
-    const content = data.content?.[0]?.text || '';
+    console.log('Resposta recebida, tipo:', data.content?.[0]?.type);
 
-    // Validate JSON before returning
+    const content = data.content?.[0]?.text || '';
+    console.log('Conteúdo (primeiros 200 chars):', content.slice(0, 200));
+
+    // Extrair JSON da resposta
     let parsed;
     try {
-      // Extract JSON if wrapped in markdown code blocks
-      const jsonMatch = content.match(/```(?:json)?\s*([\s\S]*?)\s*```/) || [null, content];
-      parsed = JSON.parse(jsonMatch[1] || content);
+      // Tentar extrair de bloco markdown se necessário
+      const jsonMatch = content.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
+      const jsonStr = jsonMatch ? jsonMatch[1] : content.trim();
+      parsed = JSON.parse(jsonStr);
     } catch (e) {
-      throw new Error('IA retornou formato inválido. Tente novamente.');
+      console.error('Erro ao parsear JSON da IA:', e.message);
+      console.error('Conteúdo recebido:', content.slice(0, 500));
+      throw new Error('A IA retornou formato inválido. Verifique se a planilha contém dados financeiros.');
     }
+
+    if (!parsed.meses || !Array.isArray(parsed.meses) || parsed.meses.length === 0) {
+      throw new Error('Nenhum dado financeiro identificado na planilha. Verifique se ela contém entradas e saídas.');
+    }
+
+    console.log('Sucesso! Meses identificados:', parsed.meses.length);
 
     return {
       statusCode: 200,
@@ -134,7 +166,7 @@ Retorne APENAS um JSON válido, sem texto adicional, neste formato exato:
     };
 
   } catch (error) {
-    console.error('Erro na função:', error);
+    console.error('Erro geral:', error.message);
     return {
       statusCode: 500,
       headers: { 'Access-Control-Allow-Origin': '*' },
