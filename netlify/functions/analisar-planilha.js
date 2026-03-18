@@ -42,46 +42,21 @@ export default async (request, context) => {
 
     const dadosLimitados = dados.slice(0, 20000);
 
-    const prompt = `Você é um especialista em finanças empresariais brasileiras.
-Analise os dados desta planilha financeira e retorne um JSON estruturado.
+    const prompt = `Analise esta planilha financeira brasileira e retorne APENAS um JSON válido, sem markdown, sem texto adicional.
 
-NOME DO ARQUIVO: ${nomeArquivo || 'planilha'}
+ARQUIVO: ${nomeArquivo || 'planilha'}
 
 DADOS:
 ${dadosLimitados}
 
-INSTRUÇÕES:
-1. Identifique TODAS as entradas (receitas) e saídas (despesas)
-2. Categorize cada transação (Aluguel, Salários, Vendas, Marketing, etc.)
-3. Identifique o mês/ano de cada lançamento
-4. Agrupe por mês
+FORMATO OBRIGATÓRIO (JSON puro, sem nada antes ou depois):
+{"empresa":"nome","periodo":"período","meses":[{"label":"Jan/25","key":"2025-01","e":1000.00,"s":800.00,"l":200.00,"entradas":[{"desc":"descrição","val":500.00,"date":"05/01/2025","status":"rcv","categoria":"Vendas"}],"saidas":[{"desc":"descrição","val":400.00,"date":"10/01/2025","status":"rcv","categoria":"Aluguel"}]}],"resumo":{"total_entradas":0,"total_saidas":0,"lucro_total":0},"insights":["insight 1","insight 2"]}
 
-Retorne APENAS um JSON válido neste formato exato (sem texto adicional, sem markdown):
-{
-  "empresa": "nome da empresa identificado",
-  "periodo": "período identificado",
-  "meses": [
-    {
-      "label": "Jan/25",
-      "key": "2025-01",
-      "e": 15000.00,
-      "s": 9500.00,
-      "l": 5500.00,
-      "entradas": [
-        {"desc": "descrição", "val": 5000.00, "date": "05/01/2025", "status": "rcv", "categoria": "Vendas"}
-      ],
-      "saidas": [
-        {"desc": "descrição", "val": 2000.00, "date": "10/01/2025", "status": "rcv", "categoria": "Aluguel"}
-      ]
-    }
-  ],
-  "resumo": {
-    "total_entradas": 0,
-    "total_saidas": 0,
-    "lucro_total": 0
-  },
-  "insights": ["insight 1", "insight 2", "insight 3"]
-}`;
+REGRAS:
+- Valores negativos ou com "-" são saídas
+- Valores positivos são entradas  
+- Agrupe por mês/ano
+- Retorne JSON puro sem markdown`;
 
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
@@ -92,7 +67,7 @@ Retorne APENAS um JSON válido neste formato exato (sem texto adicional, sem mar
       },
       body: JSON.stringify({
         model: 'claude-haiku-4-5-20251001',
-        max_tokens: 6000,
+        max_tokens: 8000,
         messages: [{ role: 'user', content: prompt }],
       }),
     });
