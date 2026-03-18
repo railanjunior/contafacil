@@ -40,7 +40,7 @@ export default async (request, context) => {
       });
     }
 
-    const dadosLimitados = dados.slice(0, 30000);
+    const dadosLimitados = dados.slice(0, 20000);
 
     const prompt = `Você é um especialista em finanças empresariais brasileiras.
 Analise os dados desta planilha financeira e retorne um JSON estruturado.
@@ -92,7 +92,7 @@ Retorne APENAS um JSON válido neste formato exato (sem texto adicional, sem mar
       },
       body: JSON.stringify({
         model: 'claude-haiku-4-5-20251001',
-        max_tokens: 4000,
+        max_tokens: 6000,
         messages: [{ role: 'user', content: prompt }],
       }),
     });
