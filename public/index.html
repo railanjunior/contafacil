@@ -1,0 +1,1010 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ContaFácil — Dashboard Inteligente</title>
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="ContaFácil">
+<meta name="theme-color" content="#0f766e">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Syne:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f0faf9;--bg2:#e6f7f5;
+  --teal:#0f766e;--teal2:#14b8a6;--teal3:#5eead4;--tl:rgba(20,184,166,0.1);
+  --dark:#0f2420;--dark2:#1a3a35;
+  --gold:#d97706;--gold-l:rgba(217,119,6,0.12);
+  --red:#dc2626;--red-l:rgba(220,38,38,0.1);
+  --green:#059669;--green-l:rgba(5,150,105,0.1);
+  --white:#ffffff;--gray:#64748b;--gray2:#94a3b8;--gray3:#e2e8f0;
+  --tx:#0f2420;--mu:#64748b;
+  --shadow:0 1px 3px rgba(0,0,0,0.08),0 4px 16px rgba(0,0,0,0.06);
+  --shadow-lg:0 8px 32px rgba(0,0,0,0.12);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--tx);font-family:'Plus Jakarta Sans',sans-serif;min-height:100vh}
+.app{display:grid;grid-template-columns:260px 1fr;min-height:100vh}
+
+/* SIDEBAR */
+.sb{background:var(--dark);display:flex;flex-direction:column;position:sticky;top:0;height:100vh;overflow-y:auto}
+.sb-logo{padding:22px 20px 18px;border-bottom:1px solid rgba(255,255,255,0.07)}
+.logo-mark{display:flex;align-items:center;gap:12px}
+.logo-icon{width:40px;height:40px;background:linear-gradient(135deg,var(--teal2),var(--teal));border-radius:10px;
+  display:flex;align-items:center;justify-content:center;box-shadow:0 0 20px rgba(20,184,166,0.35)}
+.logo-icon svg{width:22px;height:22px}
+.logo-name{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;color:#fff;letter-spacing:-.5px}
+.logo-name span{color:var(--teal3)}
+.logo-sub{font-size:9px;letter-spacing:2px;color:rgba(255,255,255,0.3);text-transform:uppercase;margin-top:2px}
+.sb-company{margin:14px 14px 0;padding:13px;background:rgba(20,184,166,0.08);
+  border:1px solid rgba(20,184,166,0.2);border-radius:12px}
+.company-name{font-size:13px;font-weight:700;color:#fff;margin-bottom:2px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.company-type{font-size:10px;color:var(--teal3);letter-spacing:1px;text-transform:uppercase}
+.company-badge{display:inline-flex;align-items:center;gap:5px;margin-top:8px;
+  background:rgba(20,184,166,0.15);border:1px solid rgba(20,184,166,0.3);
+  border-radius:20px;padding:3px 10px;font-size:9px;color:var(--teal3);letter-spacing:1px}
+.badge-dot{width:5px;height:5px;border-radius:50%;background:var(--teal3);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.sb-nav{padding:12px 12px 0;flex:1}
+.nav-lbl{font-size:9px;letter-spacing:2.5px;color:rgba(255,255,255,0.25);
+  text-transform:uppercase;padding:0 10px;margin-bottom:5px}
+.ni{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:9px;cursor:pointer;
+  font-size:12.5px;font-weight:500;color:rgba(255,255,255,0.45);transition:all .2s;
+  margin-bottom:2px;position:relative;border:1px solid transparent}
+.ni:hover{color:#fff;background:rgba(255,255,255,0.06)}
+.ni.on{color:#fff;background:rgba(20,184,166,0.15);border-color:rgba(20,184,166,0.3)}
+.ni.on::before{content:'';position:absolute;left:0;top:25%;bottom:25%;width:3px;
+  background:var(--teal2);border-radius:0 3px 3px 0}
+.ni-badge{margin-left:auto;background:var(--teal);color:#fff;border-radius:20px;font-size:9px;font-weight:700;padding:2px 7px}
+.sb-stats{margin:12px 14px 0;display:flex;flex-direction:column;gap:6px}
+.sbs{padding:10px 12px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.06);border-radius:10px}
+.sbs-l{font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:rgba(255,255,255,0.3);margin-bottom:3px}
+.sbs-v{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:#fff}
+.meta-wrap{margin:10px 14px 0;padding:12px;background:rgba(255,255,255,0.04);
+  border:1px solid rgba(255,255,255,0.07);border-radius:10px}
+.meta-top{display:flex;justify-content:space-between;margin-bottom:7px}
+.meta-lbl{font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:rgba(255,255,255,0.3)}
+.meta-pct{font-size:12px;font-weight:700;color:var(--teal3)}
+.meta-bar{height:5px;background:rgba(255,255,255,0.08);border-radius:5px;overflow:hidden}
+.meta-fill{height:100%;border-radius:5px;background:linear-gradient(90deg,var(--teal),var(--teal2));transition:width .8s}
+.meta-sub{display:flex;justify-content:space-between;margin-top:5px;font-size:9px;color:rgba(255,255,255,0.25)}
+
+/* IMPORT BUTTON */
+.sb-import{margin:10px 14px 0}
+.import-btn{width:100%;padding:11px;border-radius:10px;border:1px solid rgba(20,184,166,0.4);
+  background:rgba(20,184,166,0.08);color:var(--teal3);font-family:'Plus Jakarta Sans',sans-serif;
+  font-size:11px;font-weight:700;letter-spacing:.5px;cursor:pointer;transition:all .2s;
+  display:flex;align-items:center;justify-content:center;gap:8px}
+.import-btn:hover{background:rgba(20,184,166,0.18);border-color:var(--teal2);color:#fff}
+.import-btn.loading{opacity:.7;cursor:not-allowed;pointer-events:none}
+.sb-demo-note{margin:8px 14px 0;padding:8px 12px;background:rgba(217,119,6,0.08);
+  border:1px solid rgba(217,119,6,0.2);border-radius:8px;font-size:10px;color:rgba(217,119,6,0.9);
+  text-align:center;line-height:1.4}
+
+/* TOPBAR */
+.ct{display:flex;flex-direction:column}
+.topbar{background:var(--white);border-bottom:1px solid var(--gray3);padding:0 26px;height:56px;
+  display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:80;box-shadow:0 1px 0 var(--gray3)}
+.tb-bread{font-size:12px;color:var(--mu)}
+.tb-bread b{color:var(--tx);font-weight:600}
+.tb-right{margin-left:auto;display:flex;align-items:center;gap:10px}
+.demo-badge{background:linear-gradient(135deg,var(--teal),var(--teal2));color:#fff;font-size:9px;
+  font-weight:700;letter-spacing:1.5px;padding:4px 10px;border-radius:20px;text-transform:uppercase}
+.tabs{display:flex;gap:2px;background:var(--bg2);border:1px solid var(--gray3);border-radius:9px;padding:3px}
+.tab{padding:6px 13px;border-radius:7px;font-size:11.5px;font-weight:600;cursor:pointer;
+  color:var(--mu);transition:all .2s;border:none;background:none;font-family:'Plus Jakarta Sans',sans-serif}
+.tab.on{background:var(--white);color:var(--teal);box-shadow:var(--shadow)}
+.tab:hover:not(.on){color:var(--tx)}
+
+/* MAIN */
+.main{padding:22px 26px 52px;display:flex;flex-direction:column;gap:18px}
+@keyframes slideUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+.main>*{animation:slideUp .4s ease both}
+.main>*:nth-child(1){animation-delay:.05s}.main>*:nth-child(2){animation-delay:.1s}
+.main>*:nth-child(3){animation-delay:.15s}.main>*:nth-child(4){animation-delay:.2s}
+
+/* KPIs */
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:13px}
+.kpi{background:var(--white);border-radius:14px;padding:20px;box-shadow:var(--shadow);
+  position:relative;overflow:hidden;transition:transform .2s,box-shadow .2s;border:1px solid var(--gray3)}
+.kpi:hover{transform:translateY(-2px);box-shadow:var(--shadow-lg)}
+.kpi-accent{position:absolute;top:0;left:0;right:0;height:3px}
+.kpi.t .kpi-accent{background:linear-gradient(90deg,var(--teal),var(--teal2))}
+.kpi.r .kpi-accent{background:linear-gradient(90deg,#dc2626,#f87171)}
+.kpi.g .kpi-accent{background:linear-gradient(90deg,var(--gold),#fbbf24)}
+.kpi.gr .kpi-accent{background:linear-gradient(90deg,var(--green),#34d399)}
+.kpi-icon{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;
+  justify-content:center;font-size:17px;margin-bottom:13px}
+.kpi.t .kpi-icon{background:var(--tl);color:var(--teal)}
+.kpi.r .kpi-icon{background:var(--red-l);color:var(--red)}
+.kpi.g .kpi-icon{background:var(--gold-l);color:var(--gold)}
+.kpi.gr .kpi-icon{background:var(--green-l);color:var(--green)}
+.kpi-l{font-size:10px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--mu);margin-bottom:5px}
+.kpi-v{font-family:'Syne',sans-serif;font-size:21px;font-weight:700;color:var(--tx);margin-bottom:9px}
+.kpi-footer{display:flex;align-items:center;gap:6px}
+.trend{font-size:11px;font-weight:700;padding:2px 7px;border-radius:20px}
+.trend.up{background:var(--green-l);color:var(--green)}
+.trend.dn{background:var(--red-l);color:var(--red)}
+.trend.nt{background:var(--gold-l);color:var(--gold)}
+.kpi-sub{font-size:10px;color:var(--mu)}
+
+/* PANELS */
+.panel{background:var(--white);border-radius:14px;border:1px solid var(--gray3);overflow:hidden;box-shadow:var(--shadow)}
+.ph{display:flex;align-items:center;padding:15px 18px;border-bottom:1px solid var(--gray3);gap:9px}
+.ph-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.ph-t{font-size:12px;font-weight:700;color:var(--tx)}
+.ph-s{margin-left:auto;font-size:11px;color:var(--mu)}
+.cw{padding:16px 18px}
+.g2{display:grid;grid-template-columns:1fr 310px;gap:15px}
+.g22{display:grid;grid-template-columns:1fr 1fr;gap:15px}
+
+/* HEATMAP */
+.hm-wrap{padding:14px 18px}
+.hm-months{display:flex;gap:2px;margin-bottom:4px}
+.hm-m{font-size:8px;color:var(--mu);flex:1;text-align:center}
+.hm-row{display:flex;align-items:center;gap:3px}
+.hm-yr{font-size:9px;color:var(--mu);width:28px;text-align:right}
+.hm-cells{display:flex;gap:2px;flex:1}
+.hm-cell{flex:1;height:28px;border-radius:4px;cursor:pointer;display:flex;align-items:center;
+  justify-content:center;font-size:8px;font-weight:600;transition:transform .15s}
+.hm-cell:hover{transform:scale(1.1);z-index:2}
+
+/* CATS */
+.cats{padding:14px 18px;display:flex;flex-direction:column;gap:11px}
+.cat-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}
+.cat-name{font-size:12px;font-weight:500;color:var(--tx)}
+.cat-val{font-size:12px;font-weight:700}
+.cat-pct{font-size:10px;color:var(--mu)}
+.cat-track{height:6px;background:var(--gray3);border-radius:6px;overflow:hidden}
+.cat-fill{height:100%;border-radius:6px;transition:width .6s}
+
+/* TX */
+.tx-wrap{max-height:340px;overflow-y:auto}
+.tx{display:flex;align-items:center;gap:11px;padding:10px 18px;
+  border-bottom:1px solid var(--gray3);transition:background .15s}
+.tx:hover{background:var(--bg2)}
+.tx-ic{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
+.tx-info{flex:1;min-width:0}
+.tx-name{font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tx-date{font-size:10px;color:var(--mu);margin-top:1px}
+.tx-val{font-weight:700;font-size:13px;flex-shrink:0}
+.pos-val{color:var(--green);font-weight:700}
+.neg-val{color:var(--red);font-weight:700}
+
+/* MONTH TABLE */
+.mt-t{width:100%;border-collapse:collapse}
+.mt-t th{font-size:10px;font-weight:600;letter-spacing:.5px;text-transform:uppercase;color:var(--mu);
+  padding:8px 13px;text-align:right;border-bottom:1px solid var(--gray3)}
+.mt-t th:first-child{text-align:left}
+.mt-t td{padding:10px 13px;font-size:12px;border-bottom:1px solid var(--gray3);text-align:right}
+.mt-t td:first-child{text-align:left;font-weight:600}
+.mt-t tr:hover td{background:var(--bg2)}
+.mt-t .tot-row td{background:var(--bg2);font-weight:700;border-top:2px solid var(--gray3)}
+.bm{height:3px;border-radius:3px;margin-top:3px}
+.s-badge{font-size:10px;font-weight:600;padding:3px 8px;border-radius:20px}
+.s-badge.pos{background:var(--green-l);color:var(--green)}
+.s-badge.neg{background:var(--red-l);color:var(--red)}
+
+/* INSIGHTS */
+.ins-g{display:grid;grid-template-columns:repeat(3,1fr);gap:13px}
+.ic{background:var(--white);border:1px solid var(--gray3);border-radius:14px;
+  padding:18px;box-shadow:var(--shadow);transition:transform .2s}
+.ic:hover{transform:translateY(-2px)}
+.ic-ico{font-size:20px;margin-bottom:10px}
+.ic-t{font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--teal);margin-bottom:5px}
+.ic-b{font-size:12px;color:var(--mu);line-height:1.6}
+.ic-b strong{color:var(--tx)}
+
+/* COMPARE */
+.cmp{display:grid;grid-template-columns:1fr 1fr;gap:0;border-radius:14px;overflow:hidden;
+  border:1px solid var(--gray3);box-shadow:var(--shadow)}
+.cmp-side{padding:22px}
+.cmp-side.bef{background:#fff8f0;border-right:2px dashed var(--gray3)}
+.cmp-side.aft{background:linear-gradient(135deg,#f0faf9,#e6f7f5)}
+.cmp-lbl{display:inline-flex;align-items:center;gap:6px;font-size:10px;font-weight:700;
+  letter-spacing:2px;text-transform:uppercase;padding:4px 12px;border-radius:20px;margin-bottom:14px}
+.cmp-side.bef .cmp-lbl{background:rgba(234,88,12,0.1);color:#ea580c}
+.cmp-side.aft .cmp-lbl{background:rgba(20,184,166,0.12);color:var(--teal)}
+.cmp-title{font-family:'Syne',sans-serif;font-size:17px;font-weight:700;color:var(--tx);margin-bottom:7px}
+.cmp-desc{font-size:12.5px;color:var(--mu);line-height:1.6;margin-bottom:14px}
+.cmp-list{list-style:none;display:flex;flex-direction:column;gap:7px}
+.cmp-list li{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--mu)}
+.cmp-list li::before{content:'';width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.cmp-side.bef .cmp-list li::before{background:#ea580c}
+.cmp-side.aft .cmp-list li::before{background:var(--teal)}
+.cmp-side.aft .cmp-list li{color:var(--teal)}
+.excel-mock{background:#fff;border:1px solid #d0d0d0;border-radius:6px;overflow:hidden;margin-top:14px;font-size:10px}
+.excel-hdr{background:#217346;color:#fff;padding:4px 8px;font-size:9px;font-weight:700;letter-spacing:1px}
+.excel-row{display:grid;grid-template-columns:20px 1fr 1fr 1fr;border-bottom:1px solid #e0e0e0}
+.excel-row.head{background:#f5f5f5;font-weight:700}
+.excel-cell{padding:4px 6px;border-right:1px solid #e0e0e0;overflow:hidden;text-overflow:ellipsis}
+.excel-cell:first-child{background:#f5f5f5;color:#666;text-align:center;font-size:9px}
+
+/* IMPORT MODAL */
+.overlay{display:none;position:fixed;inset:0;z-index:200;
+  background:rgba(15,36,32,0.75);backdrop-filter:blur(10px);align-items:center;justify-content:center}
+.overlay.open{display:flex}
+.modal{background:var(--white);border-radius:20px;padding:30px;width:500px;
+  box-shadow:0 24px 64px rgba(0,0,0,0.2);max-height:88vh;overflow-y:auto}
+.modal-title{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;color:var(--tx);margin-bottom:5px}
+.modal-sub{font-size:12.5px;color:var(--mu);margin-bottom:22px;line-height:1.5}
+.drop-zone{border:2px dashed var(--gray3);border-radius:14px;padding:30px;text-align:center;
+  cursor:pointer;transition:all .2s;background:var(--bg)}
+.drop-zone:hover,.drop-zone.drag{border-color:var(--teal2);background:var(--tl)}
+.drop-ico{font-size:34px;margin-bottom:10px}
+.drop-title{font-size:14px;font-weight:700;color:var(--tx);margin-bottom:3px}
+.drop-sub{font-size:12px;color:var(--mu)}
+.file-types{display:flex;gap:5px;justify-content:center;margin-top:10px}
+.ft{background:var(--bg2);border:1px solid var(--gray3);border-radius:6px;
+  padding:3px 9px;font-size:10px;font-weight:600;color:var(--mu)}
+.import-steps{display:flex;flex-direction:column;gap:9px;margin-top:16px}
+.step{display:flex;align-items:center;gap:11px;padding:11px;background:var(--bg2);border-radius:10px}
+.step-n{width:26px;height:26px;border-radius:50%;background:var(--tl);color:var(--teal);
+  font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.step-t{font-size:12px;color:var(--tx)}
+.step-t b{color:var(--teal)}
+.modal-actions{display:flex;gap:9px;margin-top:18px}
+.btn-p{flex:1;padding:12px;background:var(--teal);color:#fff;border:none;border-radius:10px;
+  font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;font-weight:700;cursor:pointer;transition:all .2s}
+.btn-p:hover{background:var(--teal2)}
+.btn-p:disabled{opacity:.5;cursor:not-allowed}
+.btn-s{flex:1;padding:12px;background:var(--bg2);color:var(--mu);border:none;border-radius:10px;
+  font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s}
+.btn-s:hover{background:var(--gray3);color:var(--tx)}
+
+/* PROGRESS */
+.progress-wrap{display:none;margin-top:16px;padding:16px;background:var(--tl);
+  border:1px solid rgba(20,184,166,0.3);border-radius:12px}
+.progress-wrap.show{display:block}
+.progress-label{font-size:12px;font-weight:600;color:var(--teal);margin-bottom:8px;text-align:center}
+.progress-bar{height:6px;background:rgba(20,184,166,0.2);border-radius:6px;overflow:hidden}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--teal),var(--teal2));
+  border-radius:6px;width:0%;transition:width .5s}
+.progress-steps{display:flex;flex-direction:column;gap:5px;margin-top:10px}
+.ps{font-size:11px;color:var(--mu);display:flex;align-items:center;gap:6px}
+.ps.done{color:var(--green)}.ps.active{color:var(--teal);font-weight:600}
+
+/* SAVE IND */
+.save-ind{position:fixed;bottom:20px;right:20px;z-index:999;background:var(--white);
+  border:1px solid var(--gray3);border-radius:10px;padding:9px 15px;
+  display:flex;align-items:center;gap:7px;font-size:11px;font-weight:600;color:var(--mu);
+  box-shadow:var(--shadow-lg);opacity:0;transform:translateY(8px);transition:all .3s;pointer-events:none}
+.save-ind.show{opacity:1;transform:translateY(0)}
+.save-dot{width:6px;height:6px;border-radius:50%}
+
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--gray3);border-radius:3px}
+@media(max-width:1100px){
+  .app{grid-template-columns:1fr}.sb{display:none}
+  .kpis{grid-template-columns:1fr 1fr}.g2{grid-template-columns:1fr}.g22{grid-template-columns:1fr}
+  .ins-g{grid-template-columns:1fr}.cmp{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<div class="save-ind" id="saveInd">
+  <div class="save-dot" id="saveDot"></div>
+  <span id="saveMsg">Salvo</span>
+</div>
+
+<div class="app">
+<aside class="sb">
+  <div class="sb-logo">
+    <div class="logo-mark">
+      <div class="logo-icon">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12 2v2M12 20v2" stroke="rgba(255,255,255,0.7)" stroke-width="1.8" stroke-linecap="round"/>
+          <path d="M8.5 6.5h5a2.5 2.5 0 010 5h-4a2.5 2.5 0 000 5h5.5" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <div>
+        <div class="logo-name">Conta<span>Fácil</span></div>
+        <div class="logo-sub">Dashboard Inteligente</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sb-company">
+    <div class="company-name" id="companyName">Clínica Vida Plena ✦ Demo</div>
+    <div class="company-type" id="companyType">Dados de demonstração</div>
+    <div class="company-badge"><div class="badge-dot"></div><span id="badgeText">Modo Demo</span></div>
+  </div>
+
+  <div class="sb-nav">
+    <div class="nav-lbl">Módulos</div>
+    <div class="ni on" data-tab="overview">◈ &nbsp;Visão Geral</div>
+    <div class="ni" data-tab="compare">⇄ &nbsp;Antes vs Depois</div>
+    <div class="ni" data-tab="monthly">◷ &nbsp;Mês a Mês</div>
+    <div class="ni" data-tab="cashflow">⟁ &nbsp;Fluxo de Caixa</div>
+    <div class="ni" data-tab="transactions">◎ &nbsp;Transações</div>
+    <div class="ni" data-tab="insights">⬡ &nbsp;Insights IA <span class="ni-badge">IA</span></div>
+  </div>
+
+  <div class="sb-stats">
+    <div class="nav-lbl" style="margin-top:4px">Resumo do Período</div>
+    <div class="sbs"><div class="sbs-l">Faturamento Total</div><div class="sbs-v" id="sb-fat">—</div></div>
+    <div class="sbs"><div class="sbs-l">Lucro Líquido</div><div class="sbs-v" style="color:var(--teal3)" id="sb-luc">—</div></div>
+  </div>
+
+  <div class="meta-wrap">
+    <div class="meta-top"><span class="meta-lbl">Meta do Último Mês</span><span class="meta-pct" id="meta-pct">—</span></div>
+    <div class="meta-bar"><div class="meta-fill" id="meta-fill" style="width:0"></div></div>
+    <div class="meta-sub"><span id="meta-cur">—</span><span id="meta-goal">—</span></div>
+  </div>
+
+  <div class="sb-import">
+    <button class="import-btn" id="importBtn" onclick="openImport()">
+      ↑ &nbsp;Importar Minha Planilha
+    </button>
+  </div>
+  <div class="sb-demo-note" id="demoNote">
+    ✦ Dados de demonstração ativos.<br>Importe sua planilha para ver seus números reais.
+  </div>
+</aside>
+
+<div class="ct">
+  <header class="topbar">
+    <div class="tb-bread">ContaFácil / <b id="tb-title">Visão Geral</b></div>
+    <div class="tb-right">
+      <span class="demo-badge" id="topBadge">✦ Demo</span>
+      <div class="tabs">
+        <button class="tab on" data-tab="overview">Resumo</button>
+        <button class="tab" data-tab="compare">Antes/Depois</button>
+        <button class="tab" data-tab="monthly">Meses</button>
+        <button class="tab" data-tab="cashflow">Caixa</button>
+        <button class="tab" data-tab="transactions">Transações</button>
+        <button class="tab" data-tab="insights">Insights IA</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="main">
+    <div class="kpis">
+      <div class="kpi t"><div class="kpi-accent"></div><div class="kpi-icon">💰</div>
+        <div class="kpi-l">Receita Total</div><div class="kpi-v" id="kv-e">—</div>
+        <div class="kpi-footer"><span class="trend up" id="kb-e">—</span><span class="kpi-sub" id="ks-e">período</span></div>
+      </div>
+      <div class="kpi r"><div class="kpi-accent"></div><div class="kpi-icon">💸</div>
+        <div class="kpi-l">Despesas Totais</div><div class="kpi-v" id="kv-s">—</div>
+        <div class="kpi-footer"><span class="trend nt" id="kb-s">—</span><span class="kpi-sub">do faturamento</span></div>
+      </div>
+      <div class="kpi g"><div class="kpi-accent"></div><div class="kpi-icon">📈</div>
+        <div class="kpi-l">Lucro Líquido</div><div class="kpi-v" id="kv-r">—</div>
+        <div class="kpi-footer"><span class="trend up" id="kb-r">—</span><span class="kpi-sub">margem média</span></div>
+      </div>
+      <div class="kpi gr"><div class="kpi-accent"></div><div class="kpi-icon">🏆</div>
+        <div class="kpi-l">Melhor Mês</div><div class="kpi-v" id="kv-m">—</div>
+        <div class="kpi-footer"><span class="trend up" id="kb-m">—</span><span class="kpi-sub">lucro no mês</span></div>
+      </div>
+    </div>
+
+    <!-- OVERVIEW -->
+    <div id="tab-overview">
+      <div class="g2" style="margin-bottom:15px">
+        <div class="panel">
+          <div class="ph"><div class="ph-dot" style="background:var(--teal2)"></div>
+            <div class="ph-t">Receitas × Despesas Mensais</div><div class="ph-s" id="barLabel">—</div>
+          </div>
+          <div class="cw"><canvas id="barC" height="205"></canvas></div>
+        </div>
+        <div class="panel">
+          <div class="ph"><div class="ph-dot" style="background:var(--gold)"></div>
+            <div class="ph-t">Composição das Despesas</div>
+          </div>
+          <div class="cats" id="catList"></div>
+        </div>
+      </div>
+      <div class="g22">
+        <div class="panel">
+          <div class="ph"><div class="ph-dot" style="background:var(--green)"></div>
+            <div class="ph-t">Evolução do Lucro</div>
+          </div>
+          <div class="cw"><canvas id="lineC" height="170"></canvas></div>
+        </div>
+        <div class="panel">
+          <div class="ph"><div class="ph-dot" style="background:var(--teal)"></div>
+            <div class="ph-t">Heat Map — Resultado por Mês</div>
+          </div>
+          <div class="hm-wrap" id="heatmap"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- BEFORE/AFTER -->
+    <div id="tab-compare" style="display:none">
+      <div class="cmp" style="margin-bottom:15px">
+        <div class="cmp-side bef">
+          <div class="cmp-lbl">😩 Antes — Excel</div>
+          <div class="cmp-title">Horas perdidas todo mês</div>
+          <div class="cmp-desc">Preencher linha por linha, fórmulas que quebram, sem visão clara do negócio.</div>
+          <ul class="cmp-list">
+            <li>Preenchimento manual demorado</li>
+            <li>Fórmulas que quebram sem aviso</li>
+            <li>Sem gráficos ou alertas</li>
+            <li>Difícil compartilhar com contador</li>
+            <li>Sem categorização automática</li>
+          </ul>
+          <div class="excel-mock" style="margin-top:14px">
+            <div class="excel-hdr">📊 Controle Financeiro.xlsx</div>
+            <div class="excel-row head"><div class="excel-cell">N</div><div class="excel-cell">Descrição</div><div class="excel-cell">Valor</div><div class="excel-cell">Data</div></div>
+            <div class="excel-row"><div class="excel-cell">1</div><div class="excel-cell">Consultas Jan</div><div class="excel-cell">11.200</div><div class="excel-cell">01/01</div></div>
+            <div class="excel-row"><div class="excel-cell">2</div><div class="excel-cell">Aluguel</div><div class="excel-cell">-4.500</div><div class="excel-cell">05/01</div></div>
+            <div class="excel-row"><div class="excel-cell">3</div><div class="excel-cell">Salários</div><div class="excel-cell">-8.200</div><div class="excel-cell">05/01</div></div>
+            <div class="excel-row" style="background:#fff3cd"><div class="excel-cell">4</div><div class="excel-cell">#ERRO!</div><div class="excel-cell" style="color:red">#REF!</div><div class="excel-cell">—</div></div>
+          </div>
+        </div>
+        <div class="cmp-side aft">
+          <div class="cmp-lbl">✨ Depois — ContaFácil</div>
+          <div class="cmp-title">Clareza total em segundos</div>
+          <div class="cmp-desc">Importe sua planilha. A IA lê, categoriza e preenche tudo. Sem você fazer nada.</div>
+          <ul class="cmp-list">
+            <li>Importação automática em 1 clique</li>
+            <li>IA categoriza cada transação</li>
+            <li>Gráficos e alertas automáticos</li>
+            <li>Link para compartilhar</li>
+            <li>Insights inteligentes do negócio</li>
+          </ul>
+          <div style="margin-top:14px;padding:13px;background:rgba(20,184,166,0.08);border:1px solid rgba(20,184,166,0.2);border-radius:10px">
+            <div style="font-size:11px;font-weight:700;color:var(--teal);margin-bottom:8px">⚡ Resultado imediato</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+              <div style="text-align:center;padding:10px;background:rgba(20,184,166,0.06);border-radius:8px">
+                <div style="font-family:Syne,sans-serif;font-size:18px;font-weight:800;color:var(--teal)">5min</div>
+                <div style="font-size:10px;color:var(--mu)">para importar</div>
+              </div>
+              <div style="text-align:center;padding:10px;background:rgba(20,184,166,0.06);border-radius:8px">
+                <div style="font-family:Syne,sans-serif;font-size:18px;font-weight:800;color:var(--green)">100%</div>
+                <div style="font-size:10px;color:var(--mu)">automático</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="ph"><div class="ph-dot" style="background:var(--teal2)"></div>
+          <div class="ph-t">Prévia — Seus dados após importação</div><div class="ph-s" id="cmpLabel">Demo</div>
+        </div>
+        <div class="cw"><canvas id="cmpC" height="175"></canvas></div>
+      </div>
+    </div>
+
+    <!-- MONTHLY -->
+    <div id="tab-monthly" style="display:none">
+      <div class="panel">
+        <div class="ph"><div class="ph-dot" style="background:var(--teal2)"></div>
+          <div class="ph-t">Desempenho Mês a Mês</div><div class="ph-s" id="monthLabel">—</div>
+        </div>
+        <div style="padding:14px 18px;overflow-x:auto"><table class="mt-t" id="monthTbl"></table></div>
+      </div>
+    </div>
+
+    <!-- CASHFLOW -->
+    <div id="tab-cashflow" style="display:none">
+      <div class="panel">
+        <div class="ph"><div class="ph-dot" style="background:var(--teal2)"></div>
+          <div class="ph-t">Fluxo de Caixa — DRE Consolidado</div><div class="ph-s" id="cfLabel">—</div>
+        </div>
+        <div style="padding:14px 18px;overflow-x:auto"><table class="mt-t" id="cfTbl"></table></div>
+      </div>
+    </div>
+
+    <!-- TRANSACTIONS -->
+    <div id="tab-transactions" style="display:none">
+      <div class="g22">
+        <div class="panel">
+          <div class="ph"><div class="ph-dot" style="background:var(--green)"></div>
+            <div class="ph-t">Receitas</div><div class="ph-s" id="txELbl">—</div>
+          </div>
+          <div class="tx-wrap" id="txE"></div>
+        </div>
+        <div class="panel">
+          <div class="ph"><div class="ph-dot" style="background:var(--red)"></div>
+            <div class="ph-t">Despesas</div><div class="ph-s" id="txSLbl">—</div>
+          </div>
+          <div class="tx-wrap" id="txS"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- INSIGHTS -->
+    <div id="tab-insights" style="display:none">
+      <div class="ins-g" id="insGrid"></div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- IMPORT MODAL -->
+<div class="overlay" id="importOverlay">
+  <div class="modal">
+    <div class="modal-title">📊 Importar Planilha</div>
+    <div class="modal-sub">Selecione sua planilha financeira. A IA vai ler, categorizar entradas e saídas, identificar os meses e preencher seu dashboard automaticamente.</div>
+    <div class="drop-zone" id="dropZone"
+      onclick="document.getElementById('fileInput').click()"
+      ondragover="event.preventDefault();this.classList.add('drag')"
+      ondragleave="this.classList.remove('drag')"
+      ondrop="handleDrop(event)">
+      <div class="drop-ico">📁</div>
+      <div class="drop-title">Arraste sua planilha aqui</div>
+      <div class="drop-sub">ou clique para selecionar</div>
+      <div class="file-types">
+        <span class="ft">.xlsx</span><span class="ft">.xls</span>
+        <span class="ft">.csv</span><span class="ft">.ods</span>
+      </div>
+    </div>
+    <input type="file" id="fileInput" accept=".xlsx,.xls,.csv,.ods,.numbers" style="display:none" onchange="handleFile(this.files[0])">
+
+    <div class="progress-wrap" id="progressWrap">
+      <div class="progress-label" id="progressLabel">🤖 IA analisando sua planilha...</div>
+      <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+      <div class="progress-steps">
+        <div class="ps" id="ps1">⏳ Lendo arquivo...</div>
+        <div class="ps" id="ps2">⏳ Identificando transações...</div>
+        <div class="ps" id="ps3">⏳ Categorizando entradas e saídas...</div>
+        <div class="ps" id="ps4">⏳ Organizando por período...</div>
+        <div class="ps" id="ps5">⏳ Gerando insights...</div>
+      </div>
+    </div>
+
+    <div class="import-steps" id="importSteps">
+      <div class="step"><div class="step-n">1</div><div class="step-t"><b>Selecione</b> sua planilha de controle financeiro</div></div>
+      <div class="step"><div class="step-n">2</div><div class="step-t"><b>A IA lê</b> e identifica entradas, saídas e categorias</div></div>
+      <div class="step"><div class="step-n">3</div><div class="step-t"><b>Dashboard pronto</b> com seus dados em segundos</div></div>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn-p" id="btnImport" onclick="runImport()" disabled>⚡ Analisar com IA</button>
+      <button class="btn-s" onclick="closeImport()">Fechar</button>
+    </div>
+  </div>
+</div>
+
+<!-- SheetJS for reading Excel/CSV files -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<script>
+// ══ DATA ══
+const DEMO_DATA = [{"label":"Jan/25","key":"2025-01","e":32000,"s":23040,"l":8960,"entradas":[{"desc":"Consultas gerais","val":11512.32,"date":"01/01/2025","status":"rcv"},{"desc":"Exames de sangue","val":6073.46,"date":"05/01/2025","status":"rcv"},{"desc":"Aplicação Botox","val":5963.56,"date":"18/01/2025","status":"rcv"},{"desc":"Reembolso Unimed","val":4886.87,"date":"02/01/2025","status":"rcv"},{"desc":"Biópsia laboratorial","val":3563.79,"date":"08/01/2025","status":"rcv"}],"saidas":[{"desc":"Salário recepção/admin","val":7493.15,"date":"18/01/2025","status":"rcv"},{"desc":"Aluguel salas exames","val":3337.09,"date":"23/01/2025","status":"rcv"},{"desc":"EPI e luvas","val":3521.51,"date":"19/01/2025","status":"rcv"},{"desc":"Manutenção equipamentos","val":2418.07,"date":"01/01/2025","status":"rcv"},{"desc":"Criação de conteúdo","val":1901.63,"date":"11/01/2025","status":"rcv"},{"desc":"ISS mensal","val":2177.0,"date":"25/01/2025","status":"rcv"},{"desc":"Sistema de agendamento","val":862.94,"date":"13/01/2025","status":"rcv"},{"desc":"Limpeza e conservação","val":1328.61,"date":"12/01/2025","status":"rcv"}]},{"label":"Fev/25","key":"2025-02","e":34500,"s":24150,"l":10350,"entradas":[{"desc":"Retornos e avaliações","val":12816.71,"date":"24/02/2025","status":"rcv"},{"desc":"Exames de sangue","val":6949.99,"date":"13/02/2025","status":"rcv"},{"desc":"Limpeza de pele","val":6274.63,"date":"27/02/2025","status":"rcv"},{"desc":"Reembolso Unimed","val":5255.06,"date":"23/02/2025","status":"rcv"},{"desc":"Procedimento cirúrgico","val":3203.61,"date":"08/02/2025","status":"rcv"}],"saidas":[{"desc":"Salário recepção/admin","val":8327.97,"date":"28/02/2025","status":"rcv"},{"desc":"Aluguel salas exames","val":3579.25,"date":"13/02/2025","status":"rcv"},{"desc":"EPI e luvas","val":3835.2,"date":"27/02/2025","status":"rcv"},{"desc":"Manutenção equipamentos","val":2284.65,"date":"12/02/2025","status":"rcv"},{"desc":"Google Ads","val":1984.6,"date":"23/02/2025","status":"rcv"},{"desc":"CRM anuidade","val":2457.17,"date":"06/02/2025","status":"rcv"},{"desc":"Prontuário eletrônico","val":1001.41,"date":"06/02/2025","status":"rcv"},{"desc":"Internet e telefone","val":679.75,"date":"21/02/2025","status":"rcv"}]},{"label":"Mar/25","key":"2025-03","e":38000,"s":25840,"l":12160,"entradas":[{"desc":"Consultas - Dr. Silva","val":13791.07,"date":"27/03/2025","status":"rcv"},{"desc":"Ultrassonografias","val":7188.15,"date":"02/03/2025","status":"rcv"},{"desc":"Preenchimento facial","val":6704.79,"date":"03/03/2025","status":"rcv"},{"desc":"Reembolso SulAmérica","val":6170.98,"date":"19/03/2025","status":"rcv"},{"desc":"Procedimento cirúrgico","val":4145.01,"date":"16/03/2025","status":"rcv"}],"saidas":[{"desc":"Férias e encargos","val":8777.74,"date":"21/03/2025","status":"rcv"},{"desc":"Aluguel sala principal","val":3410.89,"date":"05/03/2025","status":"rcv"},{"desc":"EPI e luvas","val":4296.46,"date":"18/03/2025","status":"rcv"},{"desc":"Reparo autoclave","val":2686.13,"date":"14/03/2025","status":"rcv"},{"desc":"Instagram Ads","val":2033.93,"date":"08/03/2025","status":"rcv"},{"desc":"DAS Simples Nacional","val":2587.94,"date":"03/03/2025","status":"rcv"},{"desc":"Contabilidade online","val":1093.32,"date":"05/03/2025","status":"rcv"},{"desc":"Café e recepção","val":953.59,"date":"22/03/2025","status":"rcv"}]},{"label":"Abr/25","key":"2025-04","e":36000,"s":25560,"l":10440,"entradas":[{"desc":"Retornos e avaliações","val":12842.95,"date":"13/04/2025","status":"rcv"},{"desc":"Ultrassonografias","val":7338.08,"date":"15/04/2025","status":"rcv"},{"desc":"Aplicação Botox","val":7090.52,"date":"28/04/2025","status":"rcv"},{"desc":"Reembolso SulAmérica","val":5594.71,"date":"04/04/2025","status":"rcv"},{"desc":"Cirurgia ambulatorial #1","val":3133.74,"date":"11/04/2025","status":"rcv"}],"saidas":[{"desc":"Férias e encargos","val":7908.96,"date":"06/04/2025","status":"rcv"},{"desc":"Aluguel salas exames","val":3293.99,"date":"24/04/2025","status":"rcv"},{"desc":"Medicamentos e insumos","val":4398.37,"date":"25/04/2025","status":"rcv"},{"desc":"Reparo autoclave","val":2559.14,"date":"04/04/2025","status":"rcv"},{"desc":"Instagram Ads","val":1978.86,"date":"21/04/2025","status":"rcv"},{"desc":"DAS Simples Nacional","val":2414.03,"date":"25/04/2025","status":"rcv"},{"desc":"Contabilidade online","val":1028.84,"date":"25/04/2025","status":"rcv"},{"desc":"Limpeza e conservação","val":1977.81,"date":"20/04/2025","status":"rcv"}]},{"label":"Mai/25","key":"2025-05","e":42000,"s":27300,"l":14700,"entradas":[{"desc":"Consultas gerais","val":14666.5,"date":"04/05/2025","status":"rcv"},{"desc":"Ultrassonografias","val":9036.25,"date":"27/05/2025","status":"rcv"},{"desc":"Aplicação Botox","val":7166.05,"date":"08/05/2025","status":"rcv"},{"desc":"Reembolso Unimed","val":5777.92,"date":"16/05/2025","status":"rcv"},{"desc":"Cirurgia ambulatorial #1","val":5353.28,"date":"18/05/2025","status":"rcv"}],"saidas":[{"desc":"Salário recepção/admin","val":8216.58,"date":"16/05/2025","status":"rcv"},{"desc":"Aluguel salas exames","val":3678.33,"date":"28/05/2025","status":"rcv"},{"desc":"Medicamentos e insumos","val":4692.53,"date":"18/05/2025","status":"rcv"},{"desc":"Reparo autoclave","val":2823.02,"date":"13/05/2025","status":"rcv"},{"desc":"Material impresso","val":2236.37,"date":"15/05/2025","status":"rcv"},{"desc":"DAS Simples Nacional","val":2564.45,"date":"08/05/2025","status":"rcv"},{"desc":"Contabilidade online","val":1063.71,"date":"19/05/2025","status":"rcv"},{"desc":"Água e luz","val":2025.01,"date":"08/05/2025","status":"rcv"}]},{"label":"Jun/25","key":"2025-06","e":45000,"s":30150,"l":14850,"entradas":[{"desc":"Consultas - Dr. Silva","val":14398.63,"date":"21/06/2025","status":"rcv"},{"desc":"Ultrassonografias","val":8512.1,"date":"02/06/2025","status":"rcv"},{"desc":"Limpeza de pele","val":7404.79,"date":"08/06/2025","status":"rcv"},{"desc":"Reembolso Bradesco Saúde","val":6978.12,"date":"07/06/2025","status":"rcv"},{"desc":"Biópsia laboratorial","val":7706.36,"date":"19/06/2025","status":"rcv"}],"saidas":[{"desc":"Férias e encargos","val":9605.81,"date":"26/06/2025","status":"rcv"},{"desc":"Aluguel sala principal","val":4428.67,"date":"07/06/2025","status":"rcv"},{"desc":"EPI e luvas","val":4512.9,"date":"14/06/2025","status":"rcv"},{"desc":"Reparo autoclave","val":2978.13,"date":"15/06/2025","status":"rcv"},{"desc":"Google Ads","val":2239.95,"date":"21/06/2025","status":"rcv"},{"desc":"ISS mensal","val":2803.04,"date":"24/06/2025","status":"rcv"},{"desc":"Sistema de agendamento","val":1264.0,"date":"04/06/2025","status":"rcv"},{"desc":"Café e recepção","val":2317.5,"date":"18/06/2025","status":"rcv"}]},{"label":"Jul/25","key":"2025-07","e":48000,"s":30720,"l":17280,"entradas":[{"desc":"Consultas gerais","val":15591.01,"date":"06/07/2025","status":"rcv"},{"desc":"Exames de sangue","val":9528.25,"date":"28/07/2025","status":"rcv"},{"desc":"Aplicação Botox","val":8541.73,"date":"28/07/2025","status":"rcv"},{"desc":"Reembolso Unimed","val":6552.85,"date":"18/07/2025","status":"rcv"},{"desc":"Cirurgia ambulatorial #1","val":7786.16,"date":"25/07/2025","status":"rcv"}],"saidas":[{"desc":"Férias e encargos","val":9305.55,"date":"16/07/2025","status":"rcv"},{"desc":"Aluguel sala principal","val":4103.82,"date":"13/07/2025","status":"rcv"},{"desc":"Reagentes lab.","val":4651.46,"date":"01/07/2025","status":"rcv"},{"desc":"Calibração aparelhos","val":2956.59,"date":"26/07/2025","status":"rcv"},{"desc":"Material impresso","val":2373.16,"date":"23/07/2025","status":"rcv"},{"desc":"DAS Simples Nacional","val":2902.33,"date":"10/07/2025","status":"rcv"},{"desc":"Contabilidade online","val":1320.95,"date":"19/07/2025","status":"rcv"},{"desc":"Limpeza e conservação","val":3106.14,"date":"24/07/2025","status":"rcv"}]},{"label":"Ago/25","key":"2025-08","e":52000,"s":32760,"l":19240,"entradas":[{"desc":"Retornos e avaliações","val":16588.08,"date":"19/08/2025","status":"rcv"},{"desc":"Exames de imagem","val":10405.93,"date":"28/08/2025","status":"rcv"},{"desc":"Aplicação Botox","val":8530.48,"date":"17/08/2025","status":"rcv"},{"desc":"Reembolso Unimed","val":8348.09,"date":"03/08/2025","status":"rcv"},{"desc":"Procedimento cirúrgico","val":8127.42,"date":"08/08/2025","status":"rcv"}],"saidas":[{"desc":"Salário recepção/admin","val":9845.63,"date":"19/08/2025","status":"rcv"},{"desc":"Aluguel sala principal","val":4644.31,"date":"02/08/2025","status":"rcv"},{"desc":"EPI e luvas","val":5173.86,"date":"19/08/2025","status":"rcv"},{"desc":"Reparo autoclave","val":3503.86,"date":"07/08/2025","status":"rcv"},{"desc":"Criação de conteúdo","val":2711.46,"date":"08/08/2025","status":"rcv"},{"desc":"CRM anuidade","val":3221.38,"date":"22/08/2025","status":"rcv"},{"desc":"Sistema de agendamento","val":1268.47,"date":"11/08/2025","status":"rcv"},{"desc":"Água e luz","val":2391.03,"date":"20/08/2025","status":"rcv"}]},{"label":"Set/25","key":"2025-09","e":55000,"s":34100,"l":20900,"entradas":[{"desc":"Consultas gerais","val":17607.05,"date":"07/09/2025","status":"rcv"},{"desc":"Exames de sangue","val":10191.4,"date":"12/09/2025","status":"rcv"},{"desc":"Limpeza de pele","val":10650.96,"date":"12/09/2025","status":"rcv"},{"desc":"Reembolso SulAmérica","val":7685.28,"date":"27/09/2025","status":"rcv"},{"desc":"Biópsia laboratorial","val":8865.31,"date":"26/09/2025","status":"rcv"}],"saidas":[{"desc":"Salário técnicos","val":10962.53,"date":"22/09/2025","status":"rcv"},{"desc":"Aluguel sala principal","val":5103.79,"date":"04/09/2025","status":"rcv"},{"desc":"Medicamentos e insumos","val":5250.39,"date":"04/09/2025","status":"rcv"},{"desc":"Manutenção equipamentos","val":3285.79,"date":"20/09/2025","status":"rcv"},{"desc":"Criação de conteúdo","val":2822.98,"date":"07/09/2025","status":"rcv"},{"desc":"DAS Simples Nacional","val":3412.95,"date":"09/09/2025","status":"rcv"},{"desc":"Prontuário eletrônico","val":1275.02,"date":"14/09/2025","status":"rcv"},{"desc":"Internet e telefone","val":1986.55,"date":"11/09/2025","status":"rcv"}]},{"label":"Out/25","key":"2025-10","e":58000,"s":37120,"l":20880,"entradas":[{"desc":"Consultas - Dra. Costa","val":20856.68,"date":"09/10/2025","status":"rcv"},{"desc":"Eletrocardiogramas","val":12159.66,"date":"18/10/2025","status":"rcv"},{"desc":"Aplicação Botox","val":10567.17,"date":"04/10/2025","status":"rcv"},{"desc":"Reembolso Bradesco Saúde","val":9474.39,"date":"23/10/2025","status":"rcv"},{"desc":"Procedimento cirúrgico","val":4942.1,"date":"27/10/2025","status":"rcv"}],"saidas":[{"desc":"Férias e encargos","val":12035.21,"date":"05/10/2025","status":"rcv"},{"desc":"Aluguel salas exames","val":4887.03,"date":"10/10/2025","status":"rcv"},{"desc":"Materiais descartáveis","val":6318.34,"date":"26/10/2025","status":"rcv"},{"desc":"Reparo autoclave","val":3948.93,"date":"07/10/2025","status":"rcv"},{"desc":"Criação de conteúdo","val":2850.59,"date":"04/10/2025","status":"rcv"},{"desc":"ISS mensal","val":3878.37,"date":"28/10/2025","status":"rcv"},{"desc":"Sistema de agendamento","val":1597.37,"date":"24/10/2025","status":"rcv"},{"desc":"Internet e telefone","val":1604.16,"date":"08/10/2025","status":"rcv"}]},{"label":"Nov/25","key":"2025-11","e":62000,"s":39060,"l":22940,"entradas":[{"desc":"Consultas - Dra. Costa","val":23766.73,"date":"26/11/2025","status":"rcv"},{"desc":"Exames de imagem","val":13345.91,"date":"01/11/2025","status":"rcv"},{"desc":"Peeling químico","val":11688.01,"date":"11/11/2025","status":"rcv"},{"desc":"Reembolso Bradesco Saúde","val":9862.16,"date":"28/11/2025","status":"rcv"},{"desc":"Biópsia laboratorial","val":3337.19,"date":"26/11/2025","status":"rcv"}],"saidas":[{"desc":"Salário médicos","val":11715.44,"date":"28/11/2025","status":"rcv"},{"desc":"Aluguel sala principal","val":5782.15,"date":"08/11/2025","status":"rcv"},{"desc":"EPI e luvas","val":6566.17,"date":"15/11/2025","status":"rcv"},{"desc":"Manutenção equipamentos","val":3784.25,"date":"26/11/2025","status":"rcv"},{"desc":"Instagram Ads","val":2986.27,"date":"22/11/2025","status":"rcv"},{"desc":"DAS Simples Nacional","val":3842.55,"date":"09/11/2025","status":"rcv"},{"desc":"Prontuário eletrônico","val":1679.11,"date":"09/11/2025","status":"rcv"},{"desc":"Limpeza e conservação","val":2704.06,"date":"13/11/2025","status":"rcv"}]},{"label":"Dez/25","key":"2025-12","e":68000,"s":40800,"l":27200,"entradas":[{"desc":"Consultas gerais","val":25890.77,"date":"04/12/2025","status":"rcv"},{"desc":"Exames de sangue","val":12725.7,"date":"09/12/2025","status":"rcv"},{"desc":"Limpeza de pele","val":11281.37,"date":"14/12/2025","status":"rcv"},{"desc":"Reembolso Amil","val":10666.23,"date":"11/12/2025","status":"rcv"},{"desc":"Cirurgia ambulatorial #1","val":7435.93,"date":"17/12/2025","status":"rcv"}],"saidas":[{"desc":"Salário recepção/admin","val":12816.18,"date":"19/12/2025","status":"rcv"},{"desc":"Aluguel salas exames","val":5487.84,"date":"23/12/2025","status":"rcv"},{"desc":"Medicamentos e insumos","val":6007.53,"date":"26/12/2025","status":"rcv"},{"desc":"Reparo autoclave","val":3991.36,"date":"03/12/2025","status":"rcv"},{"desc":"Criação de conteúdo","val":3483.74,"date":"20/12/2025","status":"rcv"},{"desc":"CRM anuidade","val":4186.66,"date":"04/12/2025","status":"rcv"},{"desc":"Prontuário eletrônico","val":1736.46,"date":"17/12/2025","status":"rcv"},{"desc":"Café e recepção","val":3090.23,"date":"11/12/2025","status":"rcv"}]}];
+let DATA = JSON.parse(JSON.stringify(DEMO_DATA)); // working copy
+let isDemo = true;
+let currentFile = null;
+let fileText = '';
+
+// ══ HELPERS ══
+const fmt  = v => 'R$ ' + Number(v).toLocaleString('pt-BR',{minimumFractionDigits:0,maximumFractionDigits:0});
+const fmt2 = v => 'R$ ' + Number(v).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+
+// ══ TABS ══
+function switchTab(name) {
+  ['overview','compare','monthly','cashflow','transactions','insights'].forEach(t =>
+    document.getElementById('tab-'+t).style.display = t===name?'':'none');
+  document.querySelectorAll('.tab,.ni').forEach(el => el.classList.toggle('on', el.dataset.tab===name));
+  const T = {overview:'Visão Geral',compare:'Antes × Depois',monthly:'Mês a Mês',
+    cashflow:'Fluxo de Caixa',transactions:'Transações',insights:'Insights IA'};
+  document.getElementById('tb-title').textContent = T[name]||name;
+  if(name==='monthly')      buildMonthTable();
+  if(name==='cashflow')     buildCashflow();
+  if(name==='transactions') buildTransactions();
+  if(name==='insights')     buildInsights();
+  if(name==='compare' && !CH.cmp) initCmpChart();
+}
+document.querySelectorAll('.tab,.ni').forEach(el =>
+  el.addEventListener('click',()=>el.dataset.tab&&switchTab(el.dataset.tab)));
+
+// ══ KPIs ══
+function animCount(el, target) {
+  const start = parseFloat(el.dataset.cur||0), dur=600, step=16; let t=0;
+  clearInterval(el._ti);
+  el._ti=setInterval(()=>{
+    t+=step; const p=Math.min(t/dur,1), e=1-(1-p)**3;
+    el.textContent='R$ '+Math.round(start+(target-start)*e).toLocaleString('pt-BR');
+    if(p>=1){clearInterval(el._ti);el.dataset.cur=target;}
+  },step);
+}
+
+function updateKPIs() {
+  const totE=DATA.reduce((a,m)=>a+m.e,0);
+  const totS=DATA.reduce((a,m)=>a+m.s,0);
+  const res=totE-totS, mg=(res/totE*100).toFixed(1);
+  const best=DATA.reduce((a,b)=>b.l>a.l?b:a);
+  const first=DATA[0], last=DATA[DATA.length-1];
+  const growth=first.e>0?((last.e/first.e-1)*100).toFixed(0):0;
+
+  animCount(document.getElementById('kv-e'), totE);
+  animCount(document.getElementById('kv-s'), totS);
+  animCount(document.getElementById('kv-r'), res);
+  document.getElementById('kv-m').textContent = best.label;
+  document.getElementById('kb-e').textContent = '▲ +'+growth+'% crescimento';
+  document.getElementById('kb-s').textContent = (totS/totE*100).toFixed(1)+'% do faturamento';
+  document.getElementById('kb-r').textContent = '▲ '+mg+'% margem';
+  document.getElementById('kb-m').textContent = fmt(best.l)+' lucro';
+  document.getElementById('sb-fat').textContent = fmt(totE);
+  document.getElementById('sb-luc').textContent = fmt(res);
+
+  const pct=Math.min(100,(last.e/70000*100)).toFixed(1);
+  document.getElementById('meta-fill').style.width=pct+'%';
+  document.getElementById('meta-pct').textContent=pct+'%';
+  document.getElementById('meta-cur').textContent=fmt(last.e);
+  document.getElementById('meta-goal').textContent='/ meta';
+  document.getElementById('barLabel').textContent=first.label+' – '+last.label;
+  document.getElementById('monthLabel').textContent=first.label+' a '+last.label;
+  document.getElementById('cfLabel').textContent=first.label+' a '+last.label;
+  document.getElementById('cmpLabel').textContent=isDemo?'Demo — Clínica Vida Plena':'Seus dados reais';
+}
+
+// ══ CHARTS ══
+let CH={};
+function initCharts() {
+  Chart.defaults.font.family='Plus Jakarta Sans'; Chart.defaults.color='#64748b';
+  const c1=document.getElementById('barC').getContext('2d');
+  CH.bar=new Chart(c1,{type:'bar',data:{labels:DATA.map(m=>m.label),datasets:[
+    {label:'Receitas',data:DATA.map(m=>m.e),backgroundColor:'rgba(20,184,166,0.72)',borderRadius:6,borderSkipped:false},
+    {label:'Despesas',data:DATA.map(m=>m.s),backgroundColor:'rgba(239,68,68,0.58)',borderRadius:6,borderSkipped:false}
+  ]},options:{responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{labels:{color:'#64748b',boxWidth:12}}},
+    scales:{x:{grid:{display:false},ticks:{color:'#94a3b8'}},
+    y:{grid:{color:'rgba(0,0,0,0.04)'},ticks:{callback:v=>fmt(v),color:'#94a3b8'}}}}});
+
+  const c2=document.getElementById('lineC').getContext('2d');
+  const g2=c2.createLinearGradient(0,0,0,150);
+  g2.addColorStop(0,'rgba(5,150,105,0.2)');g2.addColorStop(1,'transparent');
+  CH.line=new Chart(c2,{type:'line',data:{labels:DATA.map(m=>m.label),datasets:[{
+    label:'Lucro',data:DATA.map(m=>m.l),borderColor:'#059669',backgroundColor:g2,
+    fill:true,tension:0.4,pointBackgroundColor:'#059669',pointBorderColor:'#fff',pointRadius:4,pointBorderWidth:2
+  }]},options:{responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{display:false}},
+    scales:{x:{grid:{display:false},ticks:{color:'#94a3b8'}},
+    y:{grid:{color:'rgba(0,0,0,0.04)'},ticks:{callback:v=>fmt(v),color:'#94a3b8'}}}}});
+
+  buildCats(); buildHeatmap();
+}
+
+function initCmpChart() {
+  const c=document.getElementById('cmpC').getContext('2d');
+  CH.cmp=new Chart(c,{type:'bar',data:{labels:DATA.map(m=>m.label),datasets:[
+    {label:'Receita',data:DATA.map(m=>m.e),backgroundColor:'rgba(20,184,166,0.68)',borderRadius:5,borderSkipped:false},
+    {label:'Despesa',data:DATA.map(m=>m.s),backgroundColor:'rgba(239,68,68,0.52)',borderRadius:5,borderSkipped:false},
+    {type:'line',label:'Lucro',data:DATA.map(m=>m.l),borderColor:'#d97706',
+     backgroundColor:'transparent',tension:0.4,pointRadius:4,yAxisID:'y1'}
+  ]},options:{responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{labels:{color:'#64748b',boxWidth:12}}},
+    scales:{x:{grid:{display:false},ticks:{color:'#94a3b8'}},
+    y:{grid:{color:'rgba(0,0,0,0.04)'},ticks:{callback:v=>fmt(v),color:'#94a3b8'}},
+    y1:{position:'right',grid:{display:false},ticks:{callback:v=>fmt(v),color:'#d97706'}}}}});
+}
+
+function updateCharts() {
+  if(!CH.bar) return;
+  CH.bar.data.labels=DATA.map(m=>m.label);
+  CH.bar.data.datasets[0].data=DATA.map(m=>m.e);
+  CH.bar.data.datasets[1].data=DATA.map(m=>m.s);
+  CH.bar.update();
+  CH.line.data.labels=DATA.map(m=>m.label);
+  CH.line.data.datasets[0].data=DATA.map(m=>m.l);
+  CH.line.update();
+  if(CH.cmp){
+    CH.cmp.data.labels=DATA.map(m=>m.label);
+    CH.cmp.data.datasets[0].data=DATA.map(m=>m.e);
+    CH.cmp.data.datasets[1].data=DATA.map(m=>m.s);
+    CH.cmp.data.datasets[2].data=DATA.map(m=>m.l);
+    CH.cmp.update();
+  }
+  buildCats(); buildHeatmap();
+}
+
+// ══ CATEGORIES ══
+const CAT_COLORS=['#0f766e','#0284c7','#7c3aed','#d97706','#dc2626','#64748b','#059669','#94a3b8'];
+function buildCats() {
+  const all=DATA.flatMap(m=>m.saidas);
+  const totS=all.reduce((a,b)=>a+b.val,0);
+  const bycat={};
+  all.forEach(s=>{
+    const cat=s.categoria||'Outros';
+    bycat[cat]=(bycat[cat]||0)+s.val;
+  });
+  const sorted=Object.entries(bycat).sort((a,b)=>b[1]-a[1]).slice(0,6);
+  const el=document.getElementById('catList');el.innerHTML='';
+  sorted.forEach(([name,val],i)=>{
+    const pct=(val/totS*100).toFixed(1);
+    const c=CAT_COLORS[i%CAT_COLORS.length];
+    el.innerHTML+=`<div><div class="cat-top">
+      <div style="display:flex;align-items:center;gap:7px">
+        <div style="width:8px;height:8px;border-radius:50%;background:${c};flex-shrink:0"></div>
+        <span class="cat-name">${name}</span>
+      </div>
+      <div style="display:flex;gap:9px;align-items:center">
+        <span class="cat-val" style="color:${c}">${fmt(val)}</span>
+        <span class="cat-pct">${pct}%</span>
+      </div>
+    </div>
+    <div class="cat-track"><div class="cat-fill" style="width:${pct}%;background:${c}"></div></div></div>`;
+  });
+}
+
+// ══ HEATMAP ══
+function buildHeatmap() {
+  const months=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+  const dataMap={};
+  DATA.forEach(m=>{
+    const [yr,mo]=m.key.split('-').map(Number);
+    if(!dataMap[yr])dataMap[yr]=Array(12).fill(null);
+    dataMap[yr][mo-1]=m.l;
+  });
+  const years=Object.keys(dataMap).sort();
+  const allVals=DATA.map(m=>m.l);
+  const maxAbs=Math.max(...allVals.map(Math.abs),1);
+  let html='<div class="hm-months">';
+  months.forEach(m=>html+=`<div class="hm-m">${m}</div>`);
+  html+='</div>';
+  years.forEach(yr=>{
+    html+=`<div class="hm-row"><div class="hm-yr">${String(yr).slice(2)}</div><div class="hm-cells">`;
+    for(let mo=0;mo<12;mo++){
+      const v=dataMap[yr][mo];
+      if(v===null){html+='<div class="hm-cell" style="background:var(--gray3)"></div>';continue;}
+      const norm=Math.abs(v)/maxAbs;
+      const alpha=0.15+norm*0.8;
+      const bg=v>=0?`rgba(20,184,166,${alpha})`:`rgba(239,68,68,${alpha})`;
+      const txt=norm>0.5?'#fff':(v>=0?'#0f766e':'#dc2626');
+      html+=`<div class="hm-cell" style="background:${bg};color:${txt}" title="${months[mo]}/${yr}: ${fmt(v)}">${Math.round(v/1000)}k</div>`;
+    }
+    html+='</div></div>';
+  });
+  document.getElementById('heatmap').innerHTML=html;
+}
+
+// ══ MONTH TABLE ══
+function buildMonthTable() {
+  const maxE=Math.max(...DATA.map(m=>m.e));
+  let totE=0,totS=0;
+  let h=`<tr><th style="text-align:left">Mês</th><th>Receitas</th><th>Despesas</th><th>Lucro</th><th>Margem</th><th>Status</th></tr>`;
+  DATA.forEach(m=>{
+    totE+=m.e;totS+=m.s;
+    const p=(m.e/maxE*100).toFixed(0),mg=(m.l/m.e*100).toFixed(1);
+    const pos=m.l>=0;
+    h+=`<tr><td>${m.label}</td>
+      <td class="pos-val">${fmt2(m.e)}<div class="bm" style="width:${p}%;background:rgba(20,184,166,0.35)"></div></td>
+      <td class="neg-val">${fmt2(m.s)}</td>
+      <td class="${pos?'pos-val':'neg-val'}">${pos?'+':''}${fmt2(m.l)}</td>
+      <td style="color:var(--${pos?'green':'red'});font-weight:700">${mg}%</td>
+      <td><span class="s-badge ${pos?'pos':'neg'}">${pos?'▲ Lucro':'▼ Prejuízo'}</span></td>
+    </tr>`;
+  });
+  const res=totE-totS;
+  h+=`<tr class="tot-row"><td>TOTAL</td><td class="pos-val">${fmt2(totE)}</td>
+    <td class="neg-val">${fmt2(totS)}</td>
+    <td class="pos-val">+${fmt2(res)}</td>
+    <td style="color:var(--green);font-weight:700">${(res/totE*100).toFixed(1)}%</td><td></td></tr>`;
+  document.getElementById('monthTbl').innerHTML=h;
+}
+
+// ══ CASHFLOW ══
+function buildCashflow() {
+  const totE=DATA.reduce((a,m)=>a+m.e,0),totS=DATA.reduce((a,m)=>a+m.s,0),res=totE-totS;
+  let h=`<tr><th style="text-align:left">Item</th><th>Valor</th><th>% Total</th></tr>`;
+  h+=`<tr style="background:rgba(20,184,166,0.06)"><td colspan="3" style="font-weight:700;color:var(--teal);padding:8px 13px;font-size:10px;letter-spacing:1px">✅ ENTRADAS</td></tr>`;
+  DATA.forEach(m=>h+=`<tr><td>${m.label}</td><td class="pos-val">${fmt2(m.e)}</td><td class="pos-val">${(m.e/totE*100).toFixed(1)}%</td></tr>`);
+  h+=`<tr class="tot-row"><td>Total Entradas</td><td class="pos-val">${fmt2(totE)}</td><td class="pos-val">100%</td></tr>`;
+  h+=`<tr style="background:rgba(239,68,68,0.04)"><td colspan="3" style="font-weight:700;color:var(--red);padding:8px 13px;font-size:10px;letter-spacing:1px">❌ SAÍDAS</td></tr>`;
+  DATA.forEach(m=>h+=`<tr><td>${m.label}</td><td class="neg-val">${fmt2(m.s)}</td><td class="neg-val">${(m.s/totS*100).toFixed(1)}%</td></tr>`);
+  h+=`<tr class="tot-row"><td>Total Saídas</td><td class="neg-val">${fmt2(totS)}</td><td class="neg-val">100%</td></tr>`;
+  h+=`<tr style="background:rgba(5,150,105,0.06)"><td style="font-weight:700;font-size:14px">💰 LUCRO LÍQUIDO</td>
+    <td colspan="2" style="text-align:right;font-weight:800;font-size:15px;color:var(--green);font-family:Syne,sans-serif">+${fmt2(res)}</td></tr>`;
+  document.getElementById('cfTbl').innerHTML=h;
+}
+
+// ══ TRANSACTIONS ══
+function buildTransactions() {
+  const allE=DATA.flatMap(m=>m.entradas).sort((a,b)=>b.val-a.val).slice(0,20);
+  const allS=DATA.flatMap(m=>m.saidas).sort((a,b)=>b.val-a.val).slice(0,20);
+  const totE=DATA.reduce((a,m)=>a+m.e,0),totS=DATA.reduce((a,m)=>a+m.s,0);
+  document.getElementById('txELbl').textContent=fmt(totE)+' total';
+  document.getElementById('txSLbl').textContent=fmt(totS)+' total';
+  const eI=['🩺','🔬','💉','🏥','💊','⚕️','🩻','🧬','💆','👩‍⚕️','💰','📋','🎯','⭐','🏆'];
+  const sI=['👥','🏢','🧪','⚙️','📢','💳','💻','🔧','💡','📊','🎓','🛡️','📱','🧹','🚿'];
+  const elE=document.getElementById('txE');elE.innerHTML='';
+  allE.forEach((e,i)=>{
+    elE.innerHTML+=`<div class="tx">
+      <div class="tx-ic" style="background:rgba(20,184,166,0.1)">${eI[i%eI.length]}</div>
+      <div class="tx-info"><div class="tx-name">${e.desc}</div>
+        <div class="tx-date">${e.date||'—'}${e.categoria?' · '+e.categoria:''}</div></div>
+      <div class="tx-val pos-val">+${fmt2(e.val)}</div></div>`;
+  });
+  const elS=document.getElementById('txS');elS.innerHTML='';
+  allS.forEach((s,i)=>{
+    elS.innerHTML+=`<div class="tx">
+      <div class="tx-ic" style="background:rgba(239,68,68,0.08)">${sI[i%sI.length]}</div>
+      <div class="tx-info"><div class="tx-name">${s.desc}</div>
+        <div class="tx-date">${s.date||'—'}${s.categoria?' · '+s.categoria:''}</div></div>
+      <div class="tx-val neg-val">-${fmt2(s.val)}</div></div>`;
+  });
+}
+
+// ══ INSIGHTS ══
+function buildInsights() {
+  const totE=DATA.reduce((a,m)=>a+m.e,0),totS=DATA.reduce((a,m)=>a+m.s,0);
+  const res=totE-totS,mg=(res/totE*100).toFixed(1);
+  const best=DATA.reduce((a,b)=>b.l>a.l?b:a);
+  const first=DATA[0],last=DATA[DATA.length-1];
+  const growth=first.e>0?((last.e/first.e-1)*100).toFixed(0):0;
+  const txCount=DATA.flatMap(m=>[...m.entradas,...m.saidas]).length;
+  const cats=new Set(DATA.flatMap(m=>m.saidas).map(s=>s.categoria).filter(Boolean));
+
+  const cards=[
+    {i:'📈',t:'Crescimento do Período',b:`Receita cresceu <strong>${growth}%</strong> do ${first.label} para ${last.label} — de <strong>${fmt(first.e)}</strong> para <strong>${fmt(last.e)}</strong>. Tendência positiva.`},
+    {i:'🏆',t:'Melhor Mês',b:`<strong>${best.label}</strong> foi o destaque: receita de <strong>${fmt(best.e)}</strong> e lucro de <strong>${fmt(best.l)}</strong> — margem de ${(best.l/best.e*100).toFixed(1)}%.`},
+    {i:'💡',t:'Margem Líquida',b:`Margem média do período: <strong>${mg}%</strong>. ${parseFloat(mg)>30?'Excelente resultado — acima da média do setor.':'Há espaço para melhorar reduzindo custos fixos.'}`},
+    {i:'🤖',t:'Processado pela IA',b:`<strong>${txCount} transações</strong> analisadas e categorizadas em <strong>${DATA.length} meses</strong>${cats.size>0?' — '+cats.size+' categorias identificadas':''}. Zero trabalho manual.`},
+    {i:'⚠️',t:'Ponto de Atenção',b:`Custos fixos representam parte significativa das despesas. Revise mensalmente categorias como Salários e Aluguel para manter margens saudáveis.`},
+    {i:'🎯',t:'Projeção',b:`Mantendo o ritmo atual, o faturamento anual projetado é <strong>${fmt(last.e*12)}</strong>. Meta sugerida para o próximo mês: <strong>${fmt(Math.round(last.e*1.1))}</strong>.`},
+  ];
+
+  document.getElementById('insGrid').innerHTML=cards.map(c=>`
+    <div class="ic"><div class="ic-ico">${c.i}</div><div class="ic-t">${c.t}</div><div class="ic-b">${c.b}</div></div>`).join('');
+}
+
+// ══ IMPORT ══
+function openImport(){document.getElementById('importOverlay').classList.add('open');}
+function closeImport(){
+  document.getElementById('importOverlay').classList.remove('open');
+  resetImportModal();
+}
+document.getElementById('importOverlay').addEventListener('click',e=>{if(e.target===e.currentTarget)closeImport();});
+
+function resetImportModal(){
+  document.getElementById('dropZone').innerHTML=`<div class="drop-ico">📁</div><div class="drop-title">Arraste sua planilha aqui</div><div class="drop-sub">ou clique para selecionar</div><div class="file-types"><span class="ft">.xlsx</span><span class="ft">.xls</span><span class="ft">.csv</span><span class="ft">.ods</span></div>`;
+  document.getElementById('progressWrap').classList.remove('show');
+  document.getElementById('importSteps').style.display='flex';
+  document.getElementById('btnImport').disabled=true;
+  document.getElementById('btnImport').textContent='⚡ Analisar com IA';
+  fileText=''; currentFile=null;
+}
+
+function handleDrop(e){
+  e.preventDefault();
+  document.getElementById('dropZone').classList.remove('drag');
+  const f=e.dataTransfer.files[0];
+  if(f)handleFile(f);
+}
+
+function handleFile(file) {
+  if(!file) return;
+  currentFile=file;
+  const ext=file.name.split('.').pop().toLowerCase();
+  document.getElementById('dropZone').innerHTML=`<div class="drop-ico">✅</div><div class="drop-title">${file.name}</div><div class="drop-sub">${(file.size/1024).toFixed(1)} KB · Pronto para análise</div>`;
+  document.getElementById('fileInput').value='';
+
+  // Read file content with SheetJS
+  const reader=new FileReader();
+  reader.onload=function(e){
+    try {
+      if(ext==='csv'){
+        fileText=e.target.result;
+      } else {
+        const wb=XLSX.read(e.target.result,{type:'array'});
+        // Get all sheets content
+        let content='';
+        wb.SheetNames.forEach(name=>{
+          const ws=wb.Sheets[name];
+          content+=`\n=== ABA: ${name} ===\n`;
+          content+=XLSX.utils.sheet_to_csv(ws);
+        });
+        fileText=content;
+      }
+      document.getElementById('btnImport').disabled=false;
+    } catch(err) {
+      showNotif('Erro ao ler arquivo: '+err.message, false);
+    }
+  };
+  if(ext==='csv') reader.readAsText(file,'UTF-8');
+  else reader.readAsArrayBuffer(file);
+}
+
+async function runImport() {
+  if(!fileText){showNotif('Selecione um arquivo primeiro',false);return;}
+  document.getElementById('btnImport').disabled=true;
+  document.getElementById('btnImport').textContent='Analisando...';
+  document.getElementById('importSteps').style.display='none';
+  document.getElementById('progressWrap').classList.add('show');
+
+  const steps=['ps1','ps2','ps3','ps4','ps5'];
+  const labels=['🔍 Lendo arquivo...','🧩 Identificando transações...','🏷️ Categorizando lançamentos...','📅 Organizando por período...','💡 Gerando insights...'];
+  const fills=[20,40,60,80,95];
+
+  // Animate progress
+  let stepIdx=0;
+  const stepTimer=setInterval(()=>{
+    if(stepIdx<steps.length){
+      if(stepIdx>0) document.getElementById(steps[stepIdx-1]).className='ps done';
+      document.getElementById(steps[stepIdx]).className='ps active';
+      document.getElementById('progressFill').style.width=fills[stepIdx]+'%';
+      document.getElementById('progressLabel').textContent=labels[stepIdx];
+      stepIdx++;
+    }
+  },700);
+
+  try {
+    const response=await fetch('/.netlify/functions/analisar-planilha',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        dados:fileText.slice(0,80000), // limit to avoid token overflow
+        nomeArquivo:currentFile?.name||'planilha'
+      })
+    });
+
+    clearInterval(stepTimer);
+
+    if(!response.ok){
+      const err=await response.json();
+      throw new Error(err.erro||'Erro no servidor');
+    }
+
+    const result=await response.json();
+    if(!result.sucesso||!result.dados?.meses?.length){
+      throw new Error('A IA não conseguiu identificar dados financeiros. Verifique se a planilha contém entradas e saídas.');
+    }
+
+    // Complete progress
+    steps.forEach(s=>document.getElementById(s).className='ps done');
+    document.getElementById('progressFill').style.width='100%';
+    document.getElementById('progressLabel').textContent='✅ Dashboard atualizado!';
+
+    // Update DATA
+    DATA=result.dados.meses;
+    isDemo=false;
+
+    // Update UI
+    const empresa=result.dados.empresa||currentFile?.name?.replace(/\..*$/,'')||'Sua Empresa';
+    document.getElementById('companyName').textContent=empresa;
+    document.getElementById('companyType').textContent=result.dados.periodo||'Dados importados';
+    document.getElementById('badgeText').textContent='Dados Reais';
+    document.getElementById('topBadge').style.background='linear-gradient(135deg,#059669,#34d399)';
+    document.getElementById('topBadge').textContent='✓ Dados Reais';
+    document.getElementById('demoNote').style.display='none';
+
+    updateKPIs();
+    updateCharts();
+
+    // Show insights from AI if available
+    if(result.dados.insights?.length){
+      // Merge AI insights into insights tab
+      window._aiInsights=result.dados.insights;
+    }
+
+    setTimeout(()=>{
+      closeImport();
+      showNotif('✅ Dashboard atualizado com seus dados reais!', true);
+    },1200);
+
+  } catch(err) {
+    clearInterval(stepTimer);
+    document.getElementById('progressLabel').textContent='❌ '+err.message;
+    document.getElementById('progressFill').style.background='rgba(239,68,68,0.6)';
+    document.getElementById('btnImport').disabled=false;
+    document.getElementById('btnImport').textContent='⚡ Tentar Novamente';
+    showNotif(err.message, false);
+  }
+}
+
+// ══ NOTIFICATION ══
+function showNotif(msg, success=true) {
+  const ind=document.getElementById('saveInd');
+  const dot=document.getElementById('saveDot');
+  const txt=document.getElementById('saveMsg');
+  ind.style.borderColor=success?'rgba(5,150,105,0.3)':'rgba(220,38,38,0.3)';
+  ind.style.color=success?'var(--green)':'var(--red)';
+  dot.style.background=success?'var(--green)':'var(--red)';
+  txt.textContent=msg;
+  ind.classList.add('show');
+  setTimeout(()=>ind.classList.remove('show'),4000);
+}
+
+// ══ INIT ══
+updateKPIs();
+initCharts();
+</script>
+</body>
+</html>
