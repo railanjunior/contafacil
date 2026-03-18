@@ -1,70 +1,46 @@
 // netlify/functions/analisar-planilha.js
-// Backend protegido — chave da API invisível ao cliente
 
-exports.handler = async (event) => {
-  console.log('Função iniciada:', event.httpMethod);
-
+export default async (request, context) => {
   // CORS preflight
-  if (event.httpMethod === 'OPTIONS') {
-    return {
-      statusCode: 200,
+  if (request.method === 'OPTIONS') {
+    return new Response('', {
+      status: 200,
       headers: {
         'Access-Control-Allow-Origin': '*',
         'Access-Control-Allow-Methods': 'POST, OPTIONS',
         'Access-Control-Allow-Headers': 'Content-Type',
       },
-      body: '',
-    };
+    });
   }
 
-  if (event.httpMethod !== 'POST') {
-    return {
-      statusCode: 405,
-      headers: { 'Access-Control-Allow-Origin': '*' },
-      body: JSON.stringify({ erro: 'Método não permitido' }),
-    };
+  if (request.method !== 'POST') {
+    return new Response(JSON.stringify({ erro: 'Método não permitido' }), {
+      status: 405,
+      headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+    });
   }
 
   try {
-    // Parse body
-    let body;
-    try {
-      body = JSON.parse(event.body);
-    } catch(e) {
-      console.error('Erro ao parsear body:', e.message);
-      return {
-        statusCode: 400,
-        headers: { 'Access-Control-Allow-Origin': '*' },
-        body: JSON.stringify({ erro: 'Corpo da requisição inválido' }),
-      };
-    }
-
+    const body = await request.json();
     const { dados, nomeArquivo } = body;
-    console.log('Arquivo recebido:', nomeArquivo, '| Tamanho:', dados?.length || 0, 'chars');
 
     if (!dados || dados.trim().length === 0) {
-      return {
-        statusCode: 400,
-        headers: { 'Access-Control-Allow-Origin': '*' },
-        body: JSON.stringify({ erro: 'Nenhum dado recebido da planilha.' }),
-      };
+      return new Response(JSON.stringify({ erro: 'Nenhum dado recebido.' }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+      });
     }
 
-    // Verificar chave
-    const ANTHROPIC_KEY = process.env.ANTHROPIC_API_KEY;
-    console.log('Chave configurada:', ANTHROPIC_KEY ? 'SIM' : 'NÃO');
+    const ANTHROPIC_KEY = Netlify.env.get('ANTHROPIC_API_KEY');
 
     if (!ANTHROPIC_KEY) {
-      return {
-        statusCode: 500,
-        headers: { 'Access-Control-Allow-Origin': '*' },
-        body: JSON.stringify({ erro: 'Chave de API não configurada no servidor.' }),
-      };
+      return new Response(JSON.stringify({ erro: 'Chave de API não configurada.' }), {
+        status: 500,
+        headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+      });
     }
 
-    // Limitar dados para evitar timeout (max 30k chars)
     const dadosLimitados = dados.slice(0, 30000);
-    console.log('Enviando para Claude:', dadosLimitados.length, 'chars');
 
     const prompt = `Você é um especialista em finanças empresariais brasileiras.
 Analise os dados desta planilha financeira e retorne um JSON estruturado.
@@ -107,8 +83,6 @@ Retorne APENAS um JSON válido neste formato exato (sem texto adicional, sem mar
   "insights": ["insight 1", "insight 2", "insight 3"]
 }`;
 
-    console.log('Chamando API Claude...');
-
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
@@ -117,60 +91,49 @@ Retorne APENAS um JSON válido neste formato exato (sem texto adicional, sem mar
         'anthropic-version': '2023-06-01',
       },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-6',
-        max_tokens: 8000,
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 4000,
         messages: [{ role: 'user', content: prompt }],
       }),
     });
 
-    console.log('Status da API:', response.status);
-
     if (!response.ok) {
       const errText = await response.text();
-      console.error('Erro da API:', errText);
-      throw new Error(`Erro na API Claude (${response.status}): ${errText.slice(0,200)}`);
+      throw new Error(`Erro na API (${response.status}): ${errText.slice(0, 200)}`);
     }
 
     const data = await response.json();
-    console.log('Resposta recebida, tipo:', data.content?.[0]?.type);
-
     const content = data.content?.[0]?.text || '';
-    console.log('Conteúdo (primeiros 200 chars):', content.slice(0, 200));
 
-    // Extrair JSON da resposta
     let parsed;
     try {
-      // Tentar extrair de bloco markdown se necessário
       const jsonMatch = content.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
       const jsonStr = jsonMatch ? jsonMatch[1] : content.trim();
       parsed = JSON.parse(jsonStr);
     } catch (e) {
-      console.error('Erro ao parsear JSON da IA:', e.message);
-      console.error('Conteúdo recebido:', content.slice(0, 500));
-      throw new Error('A IA retornou formato inválido. Verifique se a planilha contém dados financeiros.');
+      throw new Error('A IA retornou formato inválido. Tente novamente.');
     }
 
     if (!parsed.meses || !Array.isArray(parsed.meses) || parsed.meses.length === 0) {
-      throw new Error('Nenhum dado financeiro identificado na planilha. Verifique se ela contém entradas e saídas.');
+      throw new Error('Nenhum dado financeiro identificado na planilha.');
     }
 
-    console.log('Sucesso! Meses identificados:', parsed.meses.length);
-
-    return {
-      statusCode: 200,
+    return new Response(JSON.stringify({ sucesso: true, dados: parsed }), {
+      status: 200,
       headers: {
         'Content-Type': 'application/json',
         'Access-Control-Allow-Origin': '*',
       },
-      body: JSON.stringify({ sucesso: true, dados: parsed }),
-    };
+    });
 
   } catch (error) {
-    console.error('Erro geral:', error.message);
-    return {
-      statusCode: 500,
-      headers: { 'Access-Control-Allow-Origin': '*' },
-      body: JSON.stringify({ erro: error.message || 'Erro interno. Tente novamente.' }),
-    };
+    return new Response(JSON.stringify({ erro: error.message || 'Erro interno.' }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+    });
   }
+};
+
+export const config = {
+  path: '/api/analisar-planilha',
 };
