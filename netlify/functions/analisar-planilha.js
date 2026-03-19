@@ -1,114 +1,107 @@
-// netlify/functions/analisar-planilha.js
+const Anthropic = require("@anthropic-ai/sdk");
 
-export default async (request, context) => {
-  // CORS preflight
-  if (request.method === 'OPTIONS') {
-    return new Response('', {
-      status: 200,
-      headers: {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'POST, OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type',
-      },
-    });
+exports.handler = async function (event, context) {
+  if (event.httpMethod !== "POST") {
+    return { statusCode: 405, body: "Method Not Allowed" };
   }
 
-  if (request.method !== 'POST') {
-    return new Response(JSON.stringify({ erro: 'Método não permitido' }), {
-      status: 405,
-      headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
-    });
-  }
+  const headers = {
+    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Headers": "Content-Type",
+    "Content-Type": "application/json",
+  };
 
   try {
-    const body = await request.json();
+    const body = JSON.parse(event.body);
     const { dados, nomeArquivo } = body;
 
-    if (!dados || dados.trim().length === 0) {
-      return new Response(JSON.stringify({ erro: 'Nenhum dado recebido.' }), {
-        status: 400,
-        headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
-      });
+    if (!dados || dados.length === 0) {
+      return {
+        statusCode: 400,
+        headers,
+        body: JSON.stringify({ erro: "Nenhum dado recebido" }),
+      };
     }
 
-    const ANTHROPIC_KEY = Netlify.env.get('ANTHROPIC_API_KEY');
+    // Limita dados para não explodir o contexto
+    const dadosLimitados = dados.slice(0, 15);
+    const dadosStr = JSON.stringify(dadosLimitados);
+    const dadosTruncados = dadosStr.length > 12000
+      ? dadosStr.substring(0, 12000) + "..."
+      : dadosStr;
 
-    if (!ANTHROPIC_KEY) {
-      return new Response(JSON.stringify({ erro: 'Chave de API não configurada.' }), {
-        status: 500,
-        headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
-      });
+    const client = new Anthropic.Anthropic({
+      apiKey: process.env.ANTHROPIC_API_KEY,
+    });
+
+    const prompt = `Você é um analisador financeiro. Analise estes dados de planilha e retorne APENAS um objeto JSON válido, sem texto antes ou depois, sem markdown, sem blocos de código.
+
+Dados do arquivo "${nomeArquivo}":
+${dadosTruncados}
+
+Retorne EXATAMENTE este JSON (substitua os valores pelos dados reais, mantenha a estrutura):
+{"empresa":"Nome da empresa ou clínica identificada","periodo":"Período dos dados ex: Jan-Mar 2026","resumo":"Resumo executivo em 2 frases","totalReceitas":0,"totalDespesas":0,"lucroLiquido":0,"margemLucro":0,"transacoes":[{"data":"DD/MM/AAAA","descricao":"descrição","categoria":"Receita ou categoria de despesa","valor":0,"tipo":"receita ou despesa"}],"categorias":[{"nome":"categoria","total":0,"percentual":0}],"insights":["insight 1","insight 2","insight 3"]}
+
+REGRAS CRÍTICAS:
+- Retorne APENAS o JSON, nada mais
+- Máximo 15 transações no array transacoes
+- Máximo 6 categorias no array categorias  
+- Máximo 3 insights
+- Todos os valores numéricos sem R$ ou formatação, apenas número
+- JSON deve estar completo e válido`;
+
+    const response = await client.messages.create({
+      model: "claude-haiku-4-5-20251001",
+      max_tokens: 2000, // JSON pequeno e controlado = não precisa de mais
+      messages: [{ role: "user", content: prompt }],
+    });
+
+    const textoResposta = response.content[0].text.trim();
+
+    // Extrai o JSON mesmo se vier com lixo antes/depois
+    const jsonMatch = textoResposta.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) {
+      console.error("Resposta sem JSON:", textoResposta);
+      return {
+        statusCode: 500,
+        headers,
+        body: JSON.stringify({
+          erro: "IA não retornou JSON válido",
+          debug: textoResposta.substring(0, 200),
+        }),
+      };
     }
 
-    const dadosLimitados = dados.slice(0, 20000);
+    // Testa se o JSON é válido antes de retornar
+    const jsonParsed = JSON.parse(jsonMatch[0]);
 
-    const prompt = `Analise esta planilha financeira brasileira e retorne APENAS um JSON válido, sem markdown, sem texto adicional.
+    return {
+      statusCode: 200,
+      headers,
+      body: JSON.stringify(jsonParsed),
+    };
+  } catch (err) {
+    console.error("Erro na função:", err.message);
 
-ARQUIVO: ${nomeArquivo || 'planilha'}
+    // Distingue erro de JSON do erro geral
+    if (err instanceof SyntaxError) {
+      return {
+        statusCode: 500,
+        headers,
+        body: JSON.stringify({
+          erro: "JSON inválido retornado pela IA",
+          detalhe: err.message,
+        }),
+      };
+    }
 
-DADOS:
-${dadosLimitados}
-
-FORMATO OBRIGATÓRIO (JSON puro, sem nada antes ou depois):
-{"empresa":"nome","periodo":"período","meses":[{"label":"Jan/25","key":"2025-01","e":1000.00,"s":800.00,"l":200.00,"entradas":[{"desc":"descrição","val":500.00,"date":"05/01/2025","status":"rcv","categoria":"Vendas"}],"saidas":[{"desc":"descrição","val":400.00,"date":"10/01/2025","status":"rcv","categoria":"Aluguel"}]}],"resumo":{"total_entradas":0,"total_saidas":0,"lucro_total":0},"insights":["insight 1","insight 2"]}
-
-REGRAS:
-- Valores negativos ou com "-" são saídas
-- Valores positivos são entradas  
-- Agrupe por mês/ano
-- Retorne JSON puro sem markdown`;
-
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': ANTHROPIC_KEY,
-        'anthropic-version': '2023-06-01',
-      },
+    return {
+      statusCode: 500,
+      headers,
       body: JSON.stringify({
-        model: 'claude-haiku-4-5-20251001',
-        max_tokens: 8000,
-        messages: [{ role: 'user', content: prompt }],
+        erro: "Erro interno",
+        detalhe: err.message,
       }),
-    });
-
-    if (!response.ok) {
-      const errText = await response.text();
-      throw new Error(`Erro na API (${response.status}): ${errText.slice(0, 200)}`);
-    }
-
-    const data = await response.json();
-    const content = data.content?.[0]?.text || '';
-
-    let parsed;
-    try {
-      const jsonMatch = content.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
-      const jsonStr = jsonMatch ? jsonMatch[1] : content.trim();
-      parsed = JSON.parse(jsonStr);
-    } catch (e) {
-      throw new Error('A IA retornou formato inválido. Tente novamente.');
-    }
-
-    if (!parsed.meses || !Array.isArray(parsed.meses) || parsed.meses.length === 0) {
-      throw new Error('Nenhum dado financeiro identificado na planilha.');
-    }
-
-    return new Response(JSON.stringify({ sucesso: true, dados: parsed }), {
-      status: 200,
-      headers: {
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*',
-      },
-    });
-
-  } catch (error) {
-    return new Response(JSON.stringify({ erro: error.message || 'Erro interno.' }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
-    });
+    };
   }
-};
-
-export const config = {
-  path: '/api/analisar-planilha',
 };
