@@ -18,29 +18,27 @@ exports.handler = async function (event, context) {
 
     const client = new Anthropic.Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
-    const prompt = `Analise este arquivo financeiro e retorne APENAS JSON, sem texto, sem markdown.
+    const prompt = `Analise este arquivo financeiro. Retorne APENAS JSON puro, sem markdown, sem texto.
 
 Arquivo: "${nomeArquivo}"
 Dados:
-${dados.substring(0, 10000)}
+${dados.substring(0, 8000)}
 
-Retorne este JSON exato (preencha com dados reais, máximo 6 meses, máximo 3 transações por mês):
-{"sucesso":true,"dados":{"empresa":"ABRii","periodo":"Jun/2024 a Mar/2026","meses":[{"label":"Jun/24","key":"2024-06","e":26706,"s":25087,"l":1619,"entradas":[{"desc":"Entrada exemplo","val":26706,"date":"01/06/2024","status":"rcv","categoria":"Receita"}],"saidas":[{"desc":"Saída exemplo","val":25087,"date":"01/06/2024","status":"rcv","categoria":"Despesa"}]}],"insights":["insight 1","insight 2"]}}
+Retorne EXATAMENTE este formato JSON com no máximo 3 meses e 2 transações por mês:
+{"sucesso":true,"dados":{"empresa":"ABRii","periodo":"Jun/2024 a Mar/2025","meses":[{"label":"Jun/24","key":"2024-06","e":26706,"s":25087,"l":1619,"entradas":[{"desc":"MS AUTO CAR","val":2000,"date":"29/06/2024","status":"rcv","categoria":"Venda"}],"saidas":[{"desc":"Aluguel","val":2500,"date":"01/06/2024","status":"rcv","categoria":"Fixo"}]}],"insights":["insight 1"]}}
 
-REGRAS: apenas JSON válido, l = e menos s, valores sem R$`;
+IMPORTANTE: JSON deve terminar com }} no final. Valores sem R$.`;
 
     const response = await client.messages.create({
       model: "claude-haiku-4-5-20251001",
-      max_tokens: 1500,
+      max_tokens: 800,
       messages: [{ role: "user", content: prompt }],
     });
 
     const texto = response.content[0].text.trim();
-    console.log("Resposta IA (primeiros 500):", texto.substring(0, 500));
+    console.log("Resposta IA:", texto.substring(0, 800));
 
-    // Remove markdown se a IA envolver com ```json
     const textoLimpo = texto.replace(/```json\s*/g, '').replace(/```\s*/g, '').trim();
-
     const jsonMatch = textoLimpo.match(/\{[\s\S]*\}/);
     if (!jsonMatch) {
       return { statusCode: 500, headers, body: JSON.stringify({ erro: "IA não retornou JSON", debug: textoLimpo.substring(0, 300) }) };
