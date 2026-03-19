@@ -38,9 +38,12 @@ REGRAS: apenas JSON válido, l = e menos s, valores sem R$`;
     const texto = response.content[0].text.trim();
     console.log("Resposta IA (primeiros 500):", texto.substring(0, 500));
 
-    const jsonMatch = texto.match(/\{[\s\S]*\}/);
+    // Remove markdown se a IA envolver com ```json
+    const textoLimpo = texto.replace(/```json\s*/g, '').replace(/```\s*/g, '').trim();
+
+    const jsonMatch = textoLimpo.match(/\{[\s\S]*\}/);
     if (!jsonMatch) {
-      return { statusCode: 500, headers, body: JSON.stringify({ erro: "IA não retornou JSON", debug: texto.substring(0, 300) }) };
+      return { statusCode: 500, headers, body: JSON.stringify({ erro: "IA não retornou JSON", debug: textoLimpo.substring(0, 300) }) };
     }
 
     const parsed = JSON.parse(jsonMatch[0]);
