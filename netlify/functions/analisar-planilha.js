@@ -4,55 +4,43 @@ exports.handler = async function (event, context) {
   if (event.httpMethod !== "POST") {
     return { statusCode: 405, body: "Method Not Allowed" };
   }
-
   const headers = {
     "Access-Control-Allow-Origin": "*",
     "Access-Control-Allow-Headers": "Content-Type",
     "Content-Type": "application/json",
   };
-
   try {
     const body = JSON.parse(event.body);
     const { dados, nomeArquivo } = body;
-
     if (!dados) {
       return { statusCode: 400, headers, body: JSON.stringify({ erro: "Nenhum dado recebido" }) };
     }
 
-    const dadosTrunc = dados.substring(0, 15000);
-
     const client = new Anthropic.Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
-    const prompt = `Você é um analisador financeiro. Analise este CSV/texto financeiro e retorne APENAS JSON válido, sem texto antes ou depois, sem markdown.
+    const prompt = `Analise este arquivo financeiro e retorne APENAS JSON, sem texto, sem markdown.
 
 Arquivo: "${nomeArquivo}"
-Conteúdo:
-${dadosTrunc}
+Dados:
+${dados.substring(0, 10000)}
 
-Retorne EXATAMENTE este JSON com os dados reais encontrados:
-{"sucesso":true,"dados":{"empresa":"nome da empresa identificada","periodo":"período dos dados","meses":[{"label":"Mês/Ano","key":"AAAA-MM","e":0,"s":0,"l":0,"entradas":[{"desc":"descrição","val":0,"date":"DD/MM/AAAA","status":"rcv","categoria":"categoria"}],"saidas":[{"desc":"descrição","val":0,"date":"DD/MM/AAAA","status":"rcv","categoria":"categoria"}]}],"insights":["insight 1","insight 2","insight 3"]}}
+Retorne este JSON exato (preencha com dados reais, máximo 6 meses, máximo 3 transações por mês):
+{"sucesso":true,"dados":{"empresa":"ABRii","periodo":"Jun/2024 a Mar/2026","meses":[{"label":"Jun/24","key":"2024-06","e":26706,"s":25087,"l":1619,"entradas":[{"desc":"Entrada exemplo","val":26706,"date":"01/06/2024","status":"rcv","categoria":"Receita"}],"saidas":[{"desc":"Saída exemplo","val":25087,"date":"01/06/2024","status":"rcv","categoria":"Despesa"}]}],"insights":["insight 1","insight 2"]}}
 
-REGRAS CRÍTICAS:
-- Retorne APENAS o JSON, nada mais
-- "l" = e - s (lucro = entradas - saídas)
-- Máximo 5 entradas e 5 saídas por mês
-- Máximo 12 meses
-- Máximo 3 insights
-- Valores numéricos puros sem R$
-- JSON completo e válido`;
+REGRAS: apenas JSON válido, l = e menos s, valores sem R$`;
 
     const response = await client.messages.create({
       model: "claude-haiku-4-5-20251001",
-      max_tokens: 3000,
+      max_tokens: 1500,
       messages: [{ role: "user", content: prompt }],
     });
 
     const texto = response.content[0].text.trim();
-    const jsonMatch = texto.match(/\{[\s\S]*\}/);
+    console.log("Resposta IA (primeiros 500):", texto.substring(0, 500));
 
+    const jsonMatch = texto.match(/\{[\s\S]*\}/);
     if (!jsonMatch) {
-      console.error("Sem JSON na resposta:", texto.substring(0, 300));
-      return { statusCode: 500, headers, body: JSON.stringify({ erro: "IA não retornou JSON válido", debug: texto.substring(0, 200) }) };
+      return { statusCode: 500, headers, body: JSON.stringify({ erro: "IA não retornou JSON", debug: texto.substring(0, 300) }) };
     }
 
     const parsed = JSON.parse(jsonMatch[0]);
