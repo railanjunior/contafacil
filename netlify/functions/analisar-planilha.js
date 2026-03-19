@@ -23,85 +23,84 @@ exports.handler = async function (event, context) {
       };
     }
 
-    // Limita dados para não explodir o contexto
-    const dadosLimitados = dados.slice(0, 15);
-    const dadosStr = JSON.stringify(dadosLimitados);
-    const dadosTruncados = dadosStr.length > 12000
-      ? dadosStr.substring(0, 12000) + "..."
-      : dadosStr;
+    // Monta listas separadas de entradas e saídas a partir da estrutura paralela
+    const entradas = [];
+    const saidas = [];
+
+    for (const row of dados) {
+      // Colunas E=4, F=5, G=6 → entradas (índices 4,5,6)
+      const descEntrada = row[4];
+      const valorEntrada = row[5];
+      const dataEntrada = row[6];
+      if (descEntrada && valorEntrada && typeof valorEntrada === "number") {
+        entradas.push({ descricao: descEntrada, valor: valorEntrada, data: dataEntrada || "" });
+      }
+
+      // Colunas I=8, J=9, K=10 → saídas (índices 8,9,10)
+      const descSaida = row[8];
+      const valorSaida = row[9];
+      const dataSaida = row[10];
+      if (descSaida && valorSaida && typeof valorSaida === "number") {
+        saidas.push({ descricao: descSaida, valor: valorSaida, data: dataSaida || "" });
+      }
+    }
+
+    // Pega totais do resumo (linha 1 e 2 da planilha)
+    const totalEntradas = dados[0] ? (dados[0][2] || 0) : 0;
+    const totalSaidas = dados[1] ? (dados[1][2] || 0) : 0;
+
+    const resumoStr = JSON.stringify({
+      totalEntradas,
+      totalSaidas,
+      entradas: entradas.slice(0, 15),
+      saidas: saidas.slice(0, 15),
+    });
 
     const client = new Anthropic.Anthropic({
       apiKey: process.env.ANTHROPIC_API_KEY,
     });
 
-    const prompt = `Você é um analisador financeiro. Analise estes dados de planilha e retorne APENAS um objeto JSON válido, sem texto antes ou depois, sem markdown, sem blocos de código.
+    const prompt = `Você é um analisador financeiro. Analise estes dados financeiros e retorne APENAS um objeto JSON válido, sem texto antes ou depois, sem markdown.
 
-Dados do arquivo "${nomeArquivo}":
-${dadosTruncados}
+Arquivo: "${nomeArquivo}"
+Dados:
+${resumoStr}
 
-Retorne EXATAMENTE este JSON (substitua os valores pelos dados reais, mantenha a estrutura):
-{"empresa":"Nome da empresa ou clínica identificada","periodo":"Período dos dados ex: Jan-Mar 2026","resumo":"Resumo executivo em 2 frases","totalReceitas":0,"totalDespesas":0,"lucroLiquido":0,"margemLucro":0,"transacoes":[{"data":"DD/MM/AAAA","descricao":"descrição","categoria":"Receita ou categoria de despesa","valor":0,"tipo":"receita ou despesa"}],"categorias":[{"nome":"categoria","total":0,"percentual":0}],"insights":["insight 1","insight 2","insight 3"]}
+Retorne EXATAMENTE este JSON preenchido com os dados reais:
+{"empresa":"ABRii","periodo":"Jun/2024 a Mar/2026","resumo":"Resumo em 2 frases do desempenho financeiro","totalReceitas":0,"totalDespesas":0,"lucroLiquido":0,"margemLucro":0,"transacoes":[{"data":"DD/MM/AAAA","descricao":"descrição","categoria":"categoria","valor":0,"tipo":"receita ou despesa"}],"categorias":[{"nome":"categoria","total":0,"percentual":0}],"insights":["insight 1","insight 2","insight 3"]}
 
-REGRAS CRÍTICAS:
+REGRAS:
 - Retorne APENAS o JSON, nada mais
-- Máximo 15 transações no array transacoes
-- Máximo 6 categorias no array categorias  
-- Máximo 3 insights
-- Todos os valores numéricos sem R$ ou formatação, apenas número
-- JSON deve estar completo e válido`;
+- Máximo 15 transações, 6 categorias, 3 insights
+- Valores numéricos puros, sem R$
+- JSON completo e válido`;
 
     const response = await client.messages.create({
       model: "claude-haiku-4-5-20251001",
-      max_tokens: 2000, // JSON pequeno e controlado = não precisa de mais
+      max_tokens: 2000,
       messages: [{ role: "user", content: prompt }],
     });
 
     const textoResposta = response.content[0].text.trim();
-
-    // Extrai o JSON mesmo se vier com lixo antes/depois
     const jsonMatch = textoResposta.match(/\{[\s\S]*\}/);
+
     if (!jsonMatch) {
-      console.error("Resposta sem JSON:", textoResposta);
       return {
         statusCode: 500,
         headers,
-        body: JSON.stringify({
-          erro: "IA não retornou JSON válido",
-          debug: textoResposta.substring(0, 200),
-        }),
+        body: JSON.stringify({ erro: "IA não retornou JSON válido", debug: textoResposta.substring(0, 200) }),
       };
     }
 
-    // Testa se o JSON é válido antes de retornar
     const jsonParsed = JSON.parse(jsonMatch[0]);
+    return { statusCode: 200, headers, body: JSON.stringify(jsonParsed) };
 
-    return {
-      statusCode: 200,
-      headers,
-      body: JSON.stringify(jsonParsed),
-    };
   } catch (err) {
-    console.error("Erro na função:", err.message);
-
-    // Distingue erro de JSON do erro geral
-    if (err instanceof SyntaxError) {
-      return {
-        statusCode: 500,
-        headers,
-        body: JSON.stringify({
-          erro: "JSON inválido retornado pela IA",
-          detalhe: err.message,
-        }),
-      };
-    }
-
+    console.error("Erro:", err.message);
     return {
       statusCode: 500,
       headers,
-      body: JSON.stringify({
-        erro: "Erro interno",
-        detalhe: err.message,
-      }),
+      body: JSON.stringify({ erro: "Erro interno", detalhe: err.message }),
     };
   }
 };
